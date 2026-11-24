@@ -8,10 +8,23 @@
   };
   const S = { state: null, agent: store.get("agent", "claude"), running: false, unit: null, key: null, docPath: null, abort: null };
 
+  async function refreshToken() {  // the server makes a new token on every start
+    try { const r = await fetch("/api/token", { cache: "no-store" }); if (r.ok) window.TOKEN = (await r.json()).token; } catch { /* offline */ }
+  }
+  async function post(path, payload, retry = true) {
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "X-Token": window.TOKEN }, body: JSON.stringify(payload) });
+    if (r.status === 403 && retry) { await refreshToken(); return post(path, payload, false); }
+    return r;
+  }
   async function api(path, body) {
-    const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json", "X-Token": window.TOKEN }, body: JSON.stringify(body) };
-    const r = await fetch(path, opt);
-    if (!r.ok) throw new Error((await r.text()) || r.statusText);
+    let r;
+    try { r = body === undefined ? await fetch(path, { cache: "no-store" }) : await post(path, body); }
+    catch { throw new Error("Sem ligação à app. Está a correr? (./estudar.sh ou docker compose up -d)"); }
+    if (!r.ok) {
+      const t = await r.text();
+      let msg = t; try { msg = JSON.parse(t).error || t; } catch { /* plain text */ }
+      throw new Error(msg || r.statusText);
+    }
     return r.json();
   }
   function toast(msg, ms = 2600) {
@@ -196,7 +209,7 @@
     let raf = 0;
     const paint = () => { raf = 0; fillAssistant(el, m, true); const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 160; if (nearBottom) box.scrollTop = box.scrollHeight; };
     try {
-      const r = await fetch("/api/chat/send", { method: "POST", headers: { "Content-Type": "application/json", "X-Token": window.TOKEN }, body: JSON.stringify({ agent: S.agent, text }) });
+      const r = await post("/api/chat/send", { agent: S.agent, text });
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
       const reader = r.body.getReader();
       const dec = new TextDecoder();
@@ -209,7 +222,8 @@
         while ((nl = buf.indexOf("\n")) >= 0) {
           const line = buf.slice(0, nl); buf = buf.slice(nl + 1);
           if (!line.trim()) continue;
-          const ev = JSON.parse(line);
+          let ev;
+          try { ev = JSON.parse(line); } catch { continue; }
           if (ev.t === "text") {
             m.text += ev.v;
             parseMarkers(m.text).forEach((a, i) => { if (!opened.has(a)) { opened.add(a); doOpen(a, i === 0); } });
@@ -330,7 +344,7 @@
     f.grammar.value = res?.id || p?.blocks?.[0]?.unit || "";
     f.pct.value = res?.pct ?? "";
     f.listening.value = (p?.blocks?.[1]?.text || "").replace(/[*]/g, "").slice(0, 60);
-    f.output.value = p?.blocks?.[0]?.text.match(/C\d|diagn/i) ? "checkpoint" : p?.blocks?.[2]?.kind || "speaking";
+    f.output.value = /C\d|diagn/i.test(p?.blocks?.[0]?.text || "") ? "checkpoint" : p?.blocks?.[2]?.kind || "speaking";
     d.showModal();
     d.onclose = async () => {
       if (d.returnValue !== "ok") return;
@@ -343,30 +357,7 @@
   }
 
   /* ---------------- grammar unit (interactive) ---------------- */
-  function norm(s) {
-    s = String(s).toLowerCase().replace(/[’‘`´]/g, "'").replace(/\*+/g, "");
-    const rules = [[/\bi'm\b/g, "i am"], [/\b(you|we|they)'re\b/g, "$1 are"], [/\b(he|she|it|that|what|there|who|where|here)'s\b/g, "$1 is"],
-      [/\bcan't\b|\bcannot\b/g, "can not"], [/\bwon't\b/g, "will not"], [/n't\b/g, " not"], [/'ll\b/g, " will"], [/'ve\b/g, " have"], [/'d\b/g, " would"], [/'m\b/g, " am"]];
-    rules.forEach(([r, v]) => { s = s.replace(r, v); });
-    return s.replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ").trim();
-  }
-  function variants(exp) {
-    const e = exp.split(/\s+←/)[0];
-    const keepOpt = e.replace(/\(([^)]*)\)/g, (_, c) => (/[^\x00-\x7f]|aceit|sujeito|objeto|tempo|accept/i.test(c) ? "" : c));
-    const dropOpt = e.replace(/\([^)]*\)/g, "");
-    const out = new Set();
-    [keepOpt, dropOpt].forEach((b) => { out.add(b); b.split(/\s+\/\s+/).forEach((v) => out.add(v)); });
-    return [...out].map(norm).filter(Boolean);
-  }
-  function isRight(ans, exp) {
-    const a = norm(ans);
-    if (!a) return false;
-    if (variants(exp).includes(a)) return true;
-    const ell = exp.replace(/\*+/g, "").trim().match(/^(…|\.\.\.)\s*(.*)$/);
-    if (ell) { const tail = norm(ell[2].split(/\s+\/\s+/)[0]); if (tail && a.endsWith(tail)) return true; }
-    return false;
-  }
-  const clean = (s) => s.replace(/\*\*/g, "").replace(/\s+←.*$/, "");
+  const { isRight, clean } = window.Grading;
 
   async function openUnit(id, focus = true) {
     if (focus || !$("#panel").classList.contains("open")) openPanel("unit"); else openPanel("unit");

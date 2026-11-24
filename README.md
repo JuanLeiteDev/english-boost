@@ -67,6 +67,15 @@ A imagem já traz o Python, o Git, o **Claude Code CLI** e o **Codex CLI**. Só 
 A app encontra o Claude e o Codex automaticamente. Se não os encontrar, indica o caminho em ⚙ **Definições**.
 Skills de PDF/DOCX/XLSX: `uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt` (no Docker já vêm incluídas).
 
+## Testes
+
+```bash
+python3 -m unittest discover -s tests -t .          # ~5 s, sem rede nem subscrição (agentes simulados)
+docker compose exec app python3 -m unittest discover -s tests -t .   # o mesmo, dentro do Docker
+```
+
+Cobrem: a API e a segurança do servidor, o streaming do chat com o Claude e o Codex simulados (retoma de sessão, sessão inexistente, mudança de ambiente, parar, timeout, avalanche de stderr), as escritas concorrentes, o Git (sem identidade, sem upstream), a porta ocupada, a integridade das unidades, gabaritos, plano e skills, e a correção e o renderizador markdown em JavaScript (com Node). O **GitHub Actions** corre tudo em Linux, Windows e macOS (Python 3.9 e 3.12) e constrói a imagem Docker em cada push.
+
 ## Estrutura
 
 | Pasta | Conteúdo |

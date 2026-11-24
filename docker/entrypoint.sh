@@ -16,10 +16,24 @@ else
   ln -sfn /workspace/.agents/skills "$user_skills"
 fi
 
-git config --global --add safe.directory /workspace
-[ -n "${GIT_USER_NAME:-}" ] && git config --global user.name "$GIT_USER_NAME"
-[ -n "${GIT_USER_EMAIL:-}" ] && git config --global user.email "$GIT_USER_EMAIL"
-if gh auth status >/dev/null 2>&1; then gh auth setup-git >/dev/null 2>&1 || true; fi
+# Git: trust the bind-mounted repo (once, not on every restart) and set an identity for commits
+git config --global --get-all safe.directory 2>/dev/null | grep -qx /workspace || git config --global --add safe.directory /workspace
+if [ -n "${GIT_USER_NAME:-}" ]; then git config --global user.name "$GIT_USER_NAME"; fi
+if [ -n "${GIT_USER_EMAIL:-}" ]; then git config --global user.email "$GIT_USER_EMAIL"; fi
+if gh auth status >/dev/null 2>&1; then
+  gh auth setup-git >/dev/null 2>&1 || true
+  if ! git config --global user.email >/dev/null 2>&1; then  # identity from the GitHub account (noreply email)
+    info="$(gh api user --jq '[.login, (.id|tostring), (.name // .login)] | @tsv' 2>/dev/null || true)"
+    if [ -n "$info" ]; then
+      IFS=$'\t' read -r gh_login gh_id gh_name <<<"$info"
+      git config --global user.name >/dev/null 2>&1 || git config --global user.name "$gh_name"
+      git config --global user.email "${gh_id}+${gh_login}@users.noreply.github.com"
+    fi
+  fi
+fi
+if [ ! -w /workspace/progress ]; then
+  echo "⚠ Sem permissão de escrita no projeto (UID $(id -u)). No Linux, põe UID/GID no .env (id -u ; id -g) e corre: docker compose build" >&2
+fi
 
 claude_ok() { claude auth status 2>/dev/null | grep -q '"loggedIn": *true'; }
 codex_ok()  { codex login status 2>&1 | grep -qi 'logged in using'; }

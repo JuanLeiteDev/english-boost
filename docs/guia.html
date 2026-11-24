@@ -108,6 +108,7 @@ footer { color:var(--muted); font-size:13px; margin-top:64px; border-top:1px sol
   <a href="#ficheiros">Ficheiros e dados</a>
   <b>Outro PC</b>
   <a href="#outro-pc">Instalar noutro PC</a>
+  <a href="#testes">Testes</a>
   <a href="#problemas">Problemas comuns</a>
   <a href="#limites">Limites conhecidos</a>
 </nav>
@@ -368,6 +369,10 @@ powershell -ExecutionPolicy Bypass -File scripts\setup-windows.ps1
 </ol>
 <div class="note warn">O Windows nativo foi preparado mas <b>não testado</b> (não havia Windows disponível). Se algo falhar, usa o Docker: é o caminho testado e igual em todo o lado.</div>
 </div>
+
+<h2 id="testes">Testes automáticos</h2>
+<pre><code>python3 -m unittest discover -s tests -t .   <span class="cmt"># ~5 s · agentes simulados, sem rede</span></code></pre>
+<p>Os agentes são substituídos por dois scripts (<code>tests/fake_agents/</code>) que emitem os mesmos eventos JSON do Claude e do Codex. Assim testa-se o chat inteiro (streaming, retoma de sessão, parar, timeout) sem gastar a subscrição. O <b>GitHub Actions</b> corre a bateria em Linux, Windows e macOS, e constrói e testa a imagem Docker em cada push.</p>
 
 <h2 id="problemas">Problemas comuns</h2>
 <details><summary><code>permission denied … docker.sock</code> (Linux)</summary><p>Corre <code>sudo usermod -aG docker $USER</code> e termina a sessão. Até lá, usa o prefixo <code>sg docker -c "docker compose …"</code>.</p></details>

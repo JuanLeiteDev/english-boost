@@ -22,16 +22,32 @@ STATUS = {"✅": ("done", "Dominada"), "☑️": ("ok", "Feita"), "☑": ("ok", 
           "🔄": ("redo", "A repetir"), "⬜": ("todo", "Por fazer")}
 
 
+_TABLE_CACHE: dict[str, tuple[tuple[int, int], list]] = {}
+
+
 def md_tables(path: Path) -> list[list[list[str]]]:
-    """Return every markdown table in a file as a list of rows (header excluded)."""
-    if not path.exists():
+    """Return every markdown table in a file as a list of rows (header excluded).
+    Parsed tables are cached per file and re-read only when its mtime/size change."""
+    try:
+        st = path.stat()
+    except OSError:
         return []
+    sig = (st.st_mtime_ns, st.st_size)
+    hit = _TABLE_CACHE.get(str(path))
+    if hit and hit[0] == sig:
+        return [[list(r) for r in t] for t in hit[1]]
+    tables = _parse_tables(path.read_text(encoding="utf-8"))
+    _TABLE_CACHE[str(path)] = (sig, tables)
+    return [[list(r) for r in t] for t in tables]
+
+
+def _parse_tables(text: str) -> list[list[list[str]]]:
     tables, cur = [], []
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in text.splitlines():
         s = line.strip()
         if s.startswith("|"):
             cells = [c.strip() for c in s.strip("|").split("|")]
-            if all(re.fullmatch(r":?-{2,}:?", c) for c in cells if c):
+            if all(re.fullmatch(r":?-+:?", c) for c in cells if c):
                 continue
             cur.append(cells)
         elif cur:
