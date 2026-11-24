@@ -1,0 +1,24 @@
+{
+  "learner_id": "juan",
+  "target_language": "English",
+  "native_language": "Portuguese",
+  "initial_assessment_date": null,
+  "pending_assessment": "C0 diagnostic scheduled for 2026-11-25 (assessments/2026-11-25-C0-diagnostico.md)",
+  "current_cefr_level": "A2 (self-reported)",
+  "cefr_by_skill": {
+    "reading": null,
+    "writing": null,
+    "listening": null,
+    "speaking": null,
+    "vocabulary": null,
+    "grammar": null
+  },
+  "goals": "Arrive at the Erasmus at Howest (Belgium, AI Engineer programme) on 2027-02-01 able to socialise, follow classes, write emails and assignments, and solve everyday problems. Focus: listening, speaking, comprehension, writing.",
+  "accent_target": "American English",
+  "daily_commitment_minutes": {"2026-11-25..2027-01-02": 60, "2027-01-03..2027-02-01": 150},
+  "preferred_learning_styles": ["structured grammar from basics", "practical exercises", "conversation"],
+  "target_cefr_level": "B1 (solid); stretch B1+/B2",
+  "estimated_hours_available": 115,
+  "plan_file": "plan/master-plan.md",
+  "notes": "The master plan in plan/master-plan.md is authoritative. langtutor-* skills must follow it rather than generate a separate plan."
+}

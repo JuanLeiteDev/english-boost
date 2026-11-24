@@ -1,0 +1,8 @@
+{
+  "skill_name": "english-examiner",
+  "evals": [
+    {"id": 1, "prompt": "corrige este email por favor: 'Hi Tom, my name is Juan and I am from Portugal. I have 22 years and I go study AI Engineer in Howest. I am very excited but I am worry about the house. Where is good place for live in Kortrijk? Is expensive? Thanks, Juan'", "expected_output": "At most 5 prioritised corrections with hints first (I'm 22; going to study; worried; a good place to live; Is it expensive), 1–2 quoted strengths, a one-line B1-scale band estimate, a rewrite task, saved to writing/ and logged to error-log.", "files": []},
+    {"id": 2, "prompt": "Qual é o meu nível de inglês agora? Acho que já sou B2.", "expected_output": "Does not confirm B2 without evidence; explains that a level comes from a checkpoint; proposes the next scheduled checkpoint or a short evidence-based check; refers to profile.json if data exists.", "files": []},
+    {"id": 3, "prompt": "vamos fazer o diagnóstico C0", "expected_output": "Checks that materials/official exists, writes the marking guide first, runs parts A–D in order with timing, does not reveal the key, then produces assessments/2026-11-25-C0-resultado.md with a CEFR range per skill and updates profile.json.", "files": []}
+  ]
+}

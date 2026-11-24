@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>English Boost</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇺🇸</text></svg>">
+<link rel="stylesheet" href="/static/style.css">
+<script>window.TOKEN = "__TOKEN__";</script>
+</head>
+<body>
+<nav class="rail">
+  <div class="logo">EB</div>
+  <a href="#study" data-view="study" title="Estudar"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg><span>Estudar</span></a>
+  <a href="#grammar" data-view="grammar" title="Gramática"><svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z M15 4v4h4 M8 12h8 M8 16h6"/></svg><span>Gramática</span></a>
+  <a href="#progress" data-view="progress" title="Progresso"><svg viewBox="0 0 24 24"><path d="M4 20V10 M10 20V4 M16 20v-7 M22 20H2"/></svg><span>Progresso</span></a>
+  <a href="#resources" data-view="resources" title="Recursos"><svg viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H4z M20 5h-6a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h6z"/></svg><span>Recursos</span></a>
+  <button class="rail-btn" id="btn-settings" title="Definições"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.9 4.9l2.1 2.1 M17 17l2.1 2.1 M4.9 19.1L7 17 M17 7l2.1-2.1"/></svg><span>Definições</span></button>
+</nav>
+
+<main>
+  <!-- STUDY: chat + side panel -->
+  <section class="view" id="view-study">
+    <div class="chat">
+      <header class="chat-head">
+        <div class="seg" id="agent-seg">
+          <button data-agent="claude">Claude</button>
+          <button data-agent="codex">Codex</button>
+        </div>
+        <div class="head-actions">
+          <button class="icon" id="btn-new" title="Nova conversa"><svg viewBox="0 0 24 24"><path d="M12 5v14 M5 12h14"/></svg></button>
+          <button class="icon" id="btn-panel" title="Painel"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M14 4v16"/></svg></button>
+        </div>
+      </header>
+      <div class="msgs" id="msgs"></div>
+      <div class="composer">
+        <div class="chips" id="chips-inline"></div>
+        <div class="box">
+          <textarea id="input" rows="1" placeholder="Escreve ou fala…"></textarea>
+          <button class="icon" id="btn-mic" title="Falar (inglês)"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0 M12 18v3"/></svg></button>
+          <button class="send" id="btn-send" title="Enviar"><svg viewBox="0 0 24 24"><path d="M5 12h14 M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <aside class="panel" id="panel">
+      <header class="panel-head">
+        <div class="tabs" id="panel-tabs">
+          <button data-tab="today">Hoje</button>
+          <button data-tab="unit">Exercício</button>
+          <button data-tab="doc">Documento</button>
+        </div>
+        <button class="icon" id="btn-panel-close" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12 M18 6L6 18"/></svg></button>
+      </header>
+      <div class="panel-body" id="panel-today"></div>
+      <div class="panel-body" id="panel-unit"></div>
+      <div class="panel-body" id="panel-doc"></div>
+    </aside>
+  </section>
+
+  <section class="view page" id="view-grammar">
+    <h1>Gramática</h1>
+    <div class="legend"><span class="dot done"></span>dominada <span class="dot ok"></span>feita <span class="dot redo"></span>repetir <span class="dot todo"></span>por fazer</div>
+    <div class="units" id="units"></div>
+  </section>
+
+  <section class="view page" id="view-progress">
+    <div class="page-head"><h1>Progresso</h1><button class="btn" id="btn-git">Guardar no Git</button></div>
+    <div id="progress"></div>
+  </section>
+
+  <section class="view page" id="view-resources">
+    <div class="page-head"><h1>Recursos</h1>
+      <div class="seg" id="res-seg">
+        <button data-doc="resources/catalog.md">Links</button>
+        <button data-doc="plan/master-plan.md">Plano</button>
+        <button data-doc="@week">Semana</button>
+        <button data-doc="research/2026-11-24-fundamentacao.md">Estudos</button>
+      </div>
+    </div>
+    <article class="doc" id="res-doc"></article>
+  </section>
+</main>
+
+<dialog id="dlg-close">
+  <form method="dialog" class="form">
+    <h2>Terminar sessão</h2>
+    <label>Minutos <input name="minutes" type="number" min="0" max="400"></label>
+    <label>Gramática <input name="grammar"></label>
+    <label>% gramática <input name="pct" type="number" min="0" max="100"></label>
+    <label>Listening <input name="listening"></label>
+    <label>Output
+      <select name="output"><option>speaking</option><option>writing</option><option>review</option><option>checkpoint</option></select></label>
+    <label>Palavras novas <input name="words" type="number" min="0" value="8"></label>
+    <label>Notas <input name="notes" placeholder="opcional"></label>
+    <div class="row-end"><button value="cancel" class="btn ghost">Cancelar</button><button value="ok" class="btn">Guardar</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-settings">
+  <form method="dialog" class="form">
+    <h2>Definições</h2>
+    <label>Modelo Codex <select name="codex_model" id="set-codex"></select></label>
+    <label>Modelo Claude
+      <select name="claude_model"><option value="">padrão</option><option value="opus">Opus</option><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option></select></label>
+    <p class="muted small" id="set-status"></p>
+    <div class="row-end"><button value="cancel" class="btn ghost">Fechar</button><button value="ok" class="btn">Guardar</button></div>
+  </form>
+</dialog>
+
+<div id="toast"></div>
+<script src="/static/md.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

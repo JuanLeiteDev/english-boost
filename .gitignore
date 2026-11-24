@@ -1,0 +1,26 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Copyrighted third-party materials (re-download with scripts/fetch-official-materials.sh)
+materials/official/
+
+# Large media you record or download
+*.mp3
+*.m4a
+*.wav
+*.mp4
+recordings/
+
+# Skill-creator eval workspaces
+*-workspace/
+
+# OS / editor
+.DS_Store
+.vscode/
+*.swp
+.env
+
+# Web app local state (chat history, settings)
+app/state/

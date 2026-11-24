@@ -1,0 +1,8 @@
+{
+  "skill_name": "daily-study-planner",
+  "evals": [
+    {"id": 1, "prompt": "vamos estudar! hoje é dia 26/11, o que faço?", "expected_output": "Today's session in the fixed format: Phase 1, week 1, day 2, P1-01, 60 minutes split into SRS/grammar/listening/output, with the exact resources from semana-01.md; asks the learner to say 'pronto'.", "files": []},
+    {"id": 2, "prompt": "Terminei a sessão. Fiz a P1-02 e acertei 15 de 21. Errei sempre o -s na 3ª pessoa e no listening fiz a lição 2 da VOA. Escrevi o texto sobre a família.", "expected_output": "Appends a correctly formatted row to progress/log.md, marks P1-02 as ☑️ 71% in the grammar spine, adds or increments a 3rd-person -s error in error-log.md, rebuilds the dashboard, gives a 3-line summary and a commit reminder.", "files": []},
+    {"id": 3, "prompt": "falhei os últimos 3 dias (estive doente). Como fica o plano desta semana?", "expected_output": "Applies the missed-days rules from master-plan section 6 (no stacking; day 7 becomes recovery; shift dates), updates the week file and the spine dates, and explains the changes plainly in Portuguese without guilt-tripping.", "files": []}
+  ]
+}

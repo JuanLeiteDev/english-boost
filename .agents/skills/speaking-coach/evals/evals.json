@@ -1,0 +1,7 @@
+{
+  "skill_name": "speaking-coach",
+  "evals": [
+    {"id": 1, "prompt": "quero praticar o registo na câmara municipal em Kortrijk", "expected_output": "Gives a brief (situation, goal, 4–6 phrases, a complication to come), plays the clerk in short turns, introduces a missing-document complication mid-way, then gives feedback: 2 strengths, 3 errors as self-correction prompts, phrases to steal, and a replay.", "files": []},
+    {"id": 2, "prompt": "Aqui está a minha transcrição (falei 1 minuto e meio): 'so I am juan I am from portugal and I study in the university of minho I study computer engineer and I like very much the artificial intelligence because is the future and I want to make erasmus because I want to know new peoples and practice my english and I am a little bit worry about the tree first weeks'", "expected_output": "Computes WPM (~60 for ~88 words / 1.5 min); finds the error types (subject omission 'is the future', 'peoples', 'worry'→'worried', 'like very much the') linked to spine units; flags 'tree' as a likely /θ/ issue (three); suggests range upgrades; saves to speaking/.", "files": []}
+  ]
+}
