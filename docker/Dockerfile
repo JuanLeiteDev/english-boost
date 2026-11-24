@@ -10,15 +10,20 @@ ARG UID=1000
 ARG GID=1000
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends git curl ca-certificates tzdata poppler-utils procps less \
+ && apt-get install -y --no-install-recommends git curl ca-certificates tzdata poppler-utils procps less ripgrep \
  && rm -rf /var/lib/apt/lists/*
 
-# Codex CLI (official static binary from github.com/openai/codex releases)
+# Codex CLI (official static binaries from github.com/openai/codex releases):
+# `codex` plus its companion `codex-code-mode-host`, which runs Codex's shell/tools and
+# must sit next to `codex`.
 RUN set -eux; \
     case "$(uname -m)" in x86_64) t=x86_64 ;; aarch64|arm64) t=aarch64 ;; *) echo "unsupported arch"; exit 1 ;; esac; \
-    curl -fsSL -o /tmp/codex.tgz "https://github.com/openai/codex/releases/download/rust-v${CODEX_VERSION}/codex-${t}-unknown-linux-musl.tar.gz"; \
+    rel="https://github.com/openai/codex/releases/download/rust-v${CODEX_VERSION}"; \
+    curl -fsSL -o /tmp/codex.tgz "$rel/codex-${t}-unknown-linux-musl.tar.gz"; \
     tar xzf /tmp/codex.tgz -C /tmp; install -m 0755 "/tmp/codex-${t}-unknown-linux-musl" /usr/local/bin/codex; \
-    rm -f /tmp/codex*; codex --version
+    curl -fsSL -o /tmp/codex-cmh.tgz "$rel/codex-code-mode-host-${t}-unknown-linux-musl.tar.gz"; \
+    tar xzf /tmp/codex-cmh.tgz -C /tmp; install -m 0755 "/tmp/codex-code-mode-host-${t}-unknown-linux-musl" /usr/local/bin/codex-code-mode-host; \
+    rm -rf /tmp/codex*; codex --version
 
 # GitHub CLI (for "Guardar no Git" → push), checksum-verified
 RUN set -eux; \

@@ -492,6 +492,8 @@ class Handler(BaseHTTPRequestHandler):
         if p in ("/", "/index.html"):
             html = (STATIC / "index.html").read_text(encoding="utf-8").replace("__TOKEN__", TOKEN)
             return self._send(200, html.encode(), "text/html; charset=utf-8")
+        if p in ("/guia", "/guia.html"):
+            return self._send(200, (ROOT / "docs" / "guia.html").read_bytes(), "text/html; charset=utf-8")
         if p.startswith("/static/"):
             f = (STATIC / p[len("/static/"):]).resolve()
             if STATIC in f.parents and f.is_file():

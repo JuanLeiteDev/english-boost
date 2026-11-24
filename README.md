@@ -10,7 +10,7 @@ Funciona com o **Claude Code** e com o **Codex**, com skills partilhadas e todo 
 | **🐳 Docker (recomendado, igual em todos)** | `docker compose up -d` | `docker compose up -d` |
 | Nativo (sem Docker) | `./estudar.sh` | `estudar.bat` |
 
-Depois abre **http://127.0.0.1:8765**.
+Depois abre **http://127.0.0.1:8765**. 📘 O guia completo (como usar, arquitetura, Docker, autenticação, instalação noutro PC) está em [`docs/guia.html`](docs/guia.html), também disponível na app em **Recursos → Guia**.
 
 | Menu | O que tem |
 |---|---|
