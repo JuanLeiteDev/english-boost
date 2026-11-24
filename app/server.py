@@ -35,7 +35,27 @@ from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent.parent
 STATIC = ROOT / "app" / "static"
-STATE = ROOT / "app" / "state"
+
+
+def _state_dir() -> Path:
+    """app/state, or a per-user fallback when the project folder is read-only (e.g. a
+    Docker bind mount owned by another UID): the app keeps working instead of crashing."""
+    for cand in (os.environ.get("EB_STATE_DIR"), ROOT / "app" / "state", Path.home() / ".english-boost" / "state"):
+        if not cand:
+            continue
+        try:
+            d = Path(cand)
+            d.mkdir(parents=True, exist_ok=True)
+            probe = d / ".write-test"
+            probe.write_text("ok", encoding="utf-8")
+            probe.unlink()
+            return d
+        except OSError:
+            continue
+    raise SystemExit("Sem nenhuma pasta com permissão de escrita para o estado da app (define EB_STATE_DIR).")
+
+
+STATE = _state_dir()
 sys.path.insert(0, str(ROOT / "scripts"))
 import build_dashboard as bd  # noqa: E402  (reuse the dashboard parsers)
 
@@ -46,7 +66,6 @@ ENV_ID = "docker" if Path("/.dockerenv").exists() else f"native:{platform.node()
 AGENT_TIMEOUT = int(os.environ.get("AGENT_TIMEOUT", "1800"))  # seconds; a hung agent is killed
 MAX_MESSAGES = 400          # per agent, kept in app/state/chats.json
 MAX_BODY = 2 * 1024 * 1024  # bytes per request
-STATE.mkdir(parents=True, exist_ok=True)
 
 CHAT_LOCK = threading.Lock()   # app/state/chats.json
 FILE_LOCK = threading.Lock()   # project files written by the app (log, spine, dashboard)
@@ -978,6 +997,9 @@ def main():
         raise
     url = f"http://127.0.0.1:{a.port}"
     print(f"English Boost a correr em {url}  (Ctrl+C para sair)", flush=True)
+    if STATE != ROOT / "app" / "state":
+        print(f"  ⚠ O projeto não tem permissão de escrita: o histórico do chat fica em {STATE}; "
+              "registar sessões e guardar exercícios vai falhar até corrigires as permissões.", flush=True)
     print(f"  Claude: {find_claude() or 'não encontrado'}")
     print(f"  Codex:  {find_codex() or 'não encontrado'}", flush=True)
     if not a.no_browser:

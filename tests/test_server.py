@@ -1,5 +1,6 @@
 """End-to-end tests of app/server.py with fake Claude/Codex agents (no network, no subscription)."""
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -328,6 +329,31 @@ class TestGitSave(ServerTestCase):
         st, r = self.srv.post("/api/git/save", {})
         self.assertIn("já está atualizado", r["msg"])
         shutil.rmtree(bare, ignore_errors=True)
+
+
+@unittest.skipIf(os.name == "nt" or (hasattr(os, "geteuid") and os.geteuid() == 0), "needs POSIX permissions as non-root")
+class TestReadOnlyProject(unittest.TestCase):
+    """A project folder the app cannot write to (e.g. Docker bind mount with another UID) must not crash it."""
+
+    def test_starts_and_chats_with_fallback_state(self):
+        root = make_sandbox()
+        home = Path(tempfile.mkdtemp(prefix="eb-home-"))
+        state = root / "app" / "state"
+        os.chmod(state, 0o555)
+        srv = None
+        try:
+            srv = AppServer(root, env={"HOME": str(home)})
+            self.assertTrue(srv.get_json("/api/health")["ok"])
+            ev = srv.chat("claude", "olá")
+            self.assertEqual(ev[-1]["t"], "done")
+            self.assertTrue((home / ".english-boost" / "state" / "chats.json").exists())
+            self.assertFalse((state / "chats.json").exists())
+        finally:
+            if srv:
+                srv.close()
+            os.chmod(state, 0o755)
+            shutil.rmtree(root, ignore_errors=True)
+            shutil.rmtree(home, ignore_errors=True)
 
 
 class TestPortInUse(ServerTestCase):

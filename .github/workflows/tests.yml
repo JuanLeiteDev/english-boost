@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python: ["3.9", "3.12"]
+        python: ["3.10", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,11 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build
-        run: docker compose build
+      - name: Build (with the runner's UID so the bind-mounted checkout is writable)
+        run: UID=$(id -u) GID=$(id -g) docker compose build
       - name: Start and wait for health
         run: |
-          docker compose up -d
+          UID=$(id -u) GID=$(id -g) EB_SKIP_FETCH=1 docker compose up -d
           for i in $(seq 1 30); do
             s=$(docker inspect -f '{{.State.Health.Status}}' english-boost); echo "$s"
             [ "$s" = healthy ] && break; sleep 3

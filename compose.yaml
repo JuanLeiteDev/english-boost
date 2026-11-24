@@ -22,6 +22,7 @@ services:
       GIT_USER_NAME: ${GIT_USER_NAME:-}
       GIT_USER_EMAIL: ${GIT_USER_EMAIL:-}
       TZ: ${TZ:-Europe/Lisbon}
+      EB_SKIP_FETCH: ${EB_SKIP_FETCH:-}       # set to 1 to skip downloading the Cambridge materials
     volumes:
       - .:/workspace                          # the project (your files stay on your disk)
       - claude-home:/home/student/.claude     # Claude login + sessions

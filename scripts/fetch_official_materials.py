@@ -30,7 +30,11 @@ def main() -> int:
     failed = 0
     for sub, path in FILES:
         dest = out / sub / path.rsplit("/", 1)[1]
-        dest.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            print(f"Sem permissão para escrever em {out} ({e.strerror}). Materiais oficiais não descarregados.")
+            return 1
         if dest.exists() and dest.stat().st_size > 0:
             print(f"ok (já existe)  {sub}/{dest.name}")
         else:

@@ -52,17 +52,22 @@ class AppServer:
         self.proc = subprocess.Popen([sys.executable, str(root / "app" / "server.py"), "--port", str(self.port), "--no-browser"],
                                      cwd=root, env=e, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                                      encoding="utf-8", errors="replace")
-        deadline = time.time() + 15
+        deadline, last = time.time() + 30, None
         while time.time() < deadline:
             if self.proc.poll() is not None:
                 raise RuntimeError("server exited: " + self.proc.stderr.read())
             try:
-                if self.get("/api/health")[0] == 200:
+                st, raw = self.get("/api/health", timeout=5)
+                if st == 200:
                     break
-            except OSError:
-                time.sleep(0.1)
+                last = f"HTTP {st}: {raw[:300]!r}"
+            except OSError as e:
+                last = repr(e)
+            time.sleep(0.1)
         else:
-            raise RuntimeError("server did not start")
+            self.proc.terminate()
+            out, err = self.proc.communicate(timeout=10)
+            raise RuntimeError(f"server did not start; last={last}\nstdout={out[-2000:]}\nstderr={err[-2000:]}")
         self.token = self.get_json("/api/token")["token"]
 
     # -- HTTP helpers

@@ -45,7 +45,9 @@ status() {
 
 case "${1:-serve}" in
   serve)
-    [ -d materials/official/b1-preliminary ] || python3 scripts/fetch_official_materials.py || true
+    if [ -z "${EB_SKIP_FETCH:-}" ] && [ ! -d materials/official/b1-preliminary ]; then
+      python3 scripts/fetch_official_materials.py || true
+    fi
     status || true
     echo "App: http://127.0.0.1:${HOST_PORT:-8765}"
     exec python3 app/server.py --host 0.0.0.0 --port 8765 --no-browser
