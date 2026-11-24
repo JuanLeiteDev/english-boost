@@ -23,6 +23,7 @@ import re
 import secrets
 import shutil
 import signal
+import socketserver
 import subprocess
 import sys
 import threading
@@ -974,6 +975,12 @@ class Handler(BaseHTTPRequestHandler):
 class Server(ThreadingHTTPServer):
     daemon_threads = True               # Ctrl+C never waits for a streaming reply
     allow_reuse_address = not IS_WIN    # on Windows SO_REUSEADDR would let two servers share a port
+
+    def server_bind(self):
+        # HTTPServer.server_bind() calls socket.getfqdn(), a reverse-DNS lookup that can block
+        # startup for tens of seconds on macOS (found by CI). We only need the bound address.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
 
 
 def main():

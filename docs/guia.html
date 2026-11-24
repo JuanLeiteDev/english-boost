@@ -280,7 +280,7 @@ codex exec --json -m gpt-6-sol -s workspace-write "contexto da app + mensagem"</
 <tr><td>Codex CLI <code>0.167.2</code></td><td>Binários oficiais das releases do GitHub (versão fixa): <code>codex</code> e <code>codex-code-mode-host</code>. O segundo executa as ferramentas do Codex (shell) e tem de estar ao lado do primeiro: sem ele, o Codex responde mas não consegue correr comandos.</td></tr>
 <tr><td>GitHub CLI <code>2.103.3</code></td><td>Para o push. O download é verificado com o checksum oficial.</td></tr>
 <tr><td><code>requirements.txt</code></td><td>pypdf, python-docx, openpyxl…, para as skills de documentos.</td></tr>
-<tr><td>Utilizador <code>student</code> (UID 1000)</td><td>Não corre como root. No Linux, o UID coincide com o teu, e os ficheiros criados continuam a ser teus.</td></tr>
+<tr><td>Utilizador <code>student</code> (UID 1000)</td><td>Não corre como root. No Linux, o UID coincide com o teu (<code>EB_UID</code>/<code>EB_GID</code> no <code>.env</code>; o <code>scripts/setup.sh</code> preenche-os), e os ficheiros criados continuam a ser teus.</td></tr>
 <tr><td>Claude Code CLI (canal <code>stable</code>)</td><td>Instalador nativo oficial.</td></tr>
 </table></div>
 <h3>O serviço (<code>compose.yaml</code>)</h3>

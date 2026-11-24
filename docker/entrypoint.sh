@@ -32,7 +32,7 @@ if gh auth status >/dev/null 2>&1; then
   fi
 fi
 if [ ! -w /workspace/progress ]; then
-  echo "⚠ Sem permissão de escrita no projeto (UID $(id -u)). No Linux, põe UID/GID no .env (id -u ; id -g) e corre: docker compose build" >&2
+  echo "⚠ Sem permissão de escrita no projeto (UID $(id -u)). No Linux, põe EB_UID/EB_GID no .env (id -u ; id -g) e corre: docker compose build" >&2
 fi
 
 claude_ok() { claude auth status 2>/dev/null | grep -q '"loggedIn": *true'; }

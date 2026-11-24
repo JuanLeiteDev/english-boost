@@ -15,13 +15,13 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python: ["3.10", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
       - name: Run test suite (fake agents, no network)
         run: python -m unittest discover -s tests -t . -v
         env:
@@ -31,12 +31,12 @@ jobs:
     name: Docker image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build (with the runner's UID so the bind-mounted checkout is writable)
-        run: UID=$(id -u) GID=$(id -g) docker compose build
+        run: EB_UID=$(id -u) EB_GID=$(id -g) docker compose build
       - name: Start and wait for health
         run: |
-          UID=$(id -u) GID=$(id -g) EB_SKIP_FETCH=1 docker compose up -d
+          EB_UID=$(id -u) EB_GID=$(id -g) EB_SKIP_FETCH=1 docker compose up -d
           for i in $(seq 1 30); do
             s=$(docker inspect -f '{{.State.Health.Status}}' english-boost); echo "$s"
             [ "$s" = healthy ] && break; sleep 3

@@ -6,7 +6,7 @@ echo "English Boost: configuração"
 if [ -L .claude/skills ] || [ -d .claude/skills/daily-study-planner ]; then echo "✓ .claude/skills -> .agents/skills"
 else rm -f .claude/skills; mkdir -p .claude; ln -s ../.agents/skills .claude/skills; echo "✓ link criado"; fi
 if [ ! -f .env ]; then  # Docker on Linux: run the container with your UID/GID so files stay yours
-  sed -e "s/^UID=.*/UID=$(id -u)/" -e "s/^GID=.*/GID=$(id -g)/" .env.example > .env && echo "✓ .env criado (UID=$(id -u), GID=$(id -g))"
+  sed -e "s/^EB_UID=.*/EB_UID=$(id -u)/" -e "s/^EB_GID=.*/EB_GID=$(id -g)/" .env.example > .env && echo "✓ .env criado (EB_UID=$(id -u), EB_GID=$(id -g))"
 fi
 command -v python3 >/dev/null || { echo "✗ Instala o Python 3"; exit 1; }
 python3 scripts/fetch_official_materials.py || true

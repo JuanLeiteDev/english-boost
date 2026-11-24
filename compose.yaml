@@ -9,8 +9,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
+        UID: ${EB_UID:-1000}
+        GID: ${EB_GID:-1000}
     image: english-boost:latest
     container_name: english-boost
     init: true
