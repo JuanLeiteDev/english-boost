@@ -21,7 +21,7 @@ Instaladas a 2026-11-24 em `.agents/skills/` (pasta única: o Codex lê-a direta
 | Subagentes | Sim | Sim (depende da configuração) | As skills Claude Tutor e o `english-examiner` têm fallback "sem subagentes" |
 | Ferramentas citadas nos SKILL.md (`WebSearch`, `WebFetch`) | Nativas | Pesquisa web do Codex / `curl` | Os nomes das ferramentas são indicativos; os dois agentes usam o equivalente |
 | Scripts Python (`pdf`, `docx`, `xlsx`, `skill-creator`, `literature-review`) | — | — | `uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt` (o `.venv` não vai para o Git) |
-| Windows | symlinks exigem `git config core.symlinks true` e modo de programador | — | Em alternativa, copiar `.agents/skills` para `.claude/skills` |
+| Windows | symlinks need `git config core.symlinks true` + Developer Mode | — | **Docker** (recommended: the entrypoint links the skills inside the container) or `scripts/setup-windows.ps1` (creates a directory junction, no admin rights needed) |
 
 ## Redundâncias conhecidas
 

@@ -1,0 +1,4 @@
+# The image only needs these; the project itself is bind-mounted at runtime.
+*
+!requirements.txt
+!docker/

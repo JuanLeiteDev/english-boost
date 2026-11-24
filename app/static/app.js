@@ -567,7 +567,11 @@
     const d = $("#dlg-settings"), f = $("form", d), st = S.state;
     $("#set-codex").innerHTML = (st.codex_models.length ? st.codex_models : ["gpt-6-sol"]).map((m) => `<option ${m === st.settings.codex_model ? "selected" : ""}>${esc(m)}</option>`).join("");
     f.claude_model.value = st.settings.claude_model || "";
-    $("#set-status").textContent = `Claude: ${st.agents.claude ? "✓ encontrado" : "✗ não encontrado"} · Codex: ${st.agents.codex ? "✓ encontrado" : "✗ não encontrado"}`;
+    f.claude_bin.value = st.settings.claude_bin || "";
+    f.codex_bin.value = st.settings.codex_bin || "";
+    $("#set-cbin").placeholder = st.paths.claude ? `automático: ${st.paths.claude}` : "não encontrado: indica o caminho";
+    $("#set-xbin").placeholder = st.paths.codex ? `automático: ${st.paths.codex}` : "não encontrado: indica o caminho";
+    $("#set-status").textContent = `Claude ${st.agents.claude ? "✓" : "✗"} · Codex ${st.agents.codex ? "✓" : "✗"}. Deixa os caminhos vazios para a deteção automática.`;
     d.showModal();
     d.onclose = async () => {
       if (d.returnValue !== "ok") return;

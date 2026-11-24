@@ -5,9 +5,12 @@ Funciona com o **Claude Code** e com o **Codex**, com skills partilhadas e todo 
 
 ## Começar (todos os dias)
 
-```bash
-./estudar.sh          # abre http://127.0.0.1:8765 no browser
-```
+| | Linux / macOS | Windows |
+|---|---|---|
+| **🐳 Docker (recomendado, igual em todos)** | `docker compose up -d` | `docker compose up -d` |
+| Nativo (sem Docker) | `./estudar.sh` | `estudar.bat` |
+
+Depois abre **http://127.0.0.1:8765**.
 
 | Menu | O que tem |
 |---|---|
@@ -25,11 +28,44 @@ Funciona com o **Claude Code** e com o **Codex**, com skills partilhadas e todo 
 
 ## Primeira vez num dispositivo novo
 
-```bash
-git clone <o teu repositório privado> English && cd English
-bash scripts/fetch-official-materials.sh        # testes oficiais Cambridge (não vão para o Git)
-uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt   # só para PDF/DOCX/XLSX
-```
+### 🐳 Com Docker (Linux, macOS, Windows): recomendado
+
+A imagem já traz o Python, o Git, o **Claude Code CLI** e o **Codex CLI**. Só precisas do Docker e das tuas contas.
+
+1. Instala o Docker: **Windows/macOS:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (no Windows com WSL 2) · **Linux:** Docker Engine e depois `sudo usermod -aG docker $USER`; termina a sessão e volta a entrar.
+2. Clona e entra no projeto:
+   ```bash
+   git clone https://github.com/JuanLeiteDev/english-boost.git && cd english-boost
+   cp .env.example .env            # opcional: fuso horário, porta, nome para os commits
+   docker compose build            # 1.ª vez: ~3–5 min
+   docker compose run --rm app login   # entra no Claude, no Codex e (opcional) no GitHub, com códigos no browser
+   docker compose up -d            # a app fica a correr e arranca sozinha com o Docker
+   ```
+3. Abre **http://127.0.0.1:8765**.
+
+| Comando | Para quê |
+|---|---|
+| `docker compose up -d` / `down` | Ligar / desligar a app |
+| `docker compose run --rm app status` | Ver se o Claude, o Codex e o GitHub têm sessão iniciada |
+| `docker compose logs -f` | Ver o registo da app |
+| `docker compose build --no-cache` | Atualizar as versões dos CLIs (editar `docker/Dockerfile`) |
+
+- **Os teus ficheiros ficam no teu disco:** o projeto é montado no contentor. Os logins ficam em volumes Docker (`claude-home`, `codex-home`, `gh-config`), por isso fazes login **uma vez por dispositivo**.
+- **Os agentes usam as tuas subscrições**, sem API: Claude (Pro/Max) e Codex (ChatGPT).
+- **Microfone e voz:** funcionam no browser do teu computador, não dependem do Docker.
+
+### Sem Docker (nativo)
+
+| | Linux / macOS | Windows |
+|---|---|---|
+| Requisitos | Python 3.9+, Git | Python 3.9+ (`winget install Python.Python.3.12`), Git for Windows |
+| Configurar (1×) | `bash scripts/setup.sh` | `powershell -ExecutionPolicy Bypass -File scripts\setup-windows.ps1` |
+| Claude | extensão Claude Code do VS Code com login feito, **ou** `curl -fsSL https://claude.ai/install.sh \| bash` | extensão do VS Code, **ou** `irm https://claude.ai/install.ps1 \| iex` |
+| Codex | app Codex/ChatGPT, **ou** `npm i -g @openai/codex` + `codex login` | `npm i -g @openai/codex` + `codex login` |
+| Abrir a app | `./estudar.sh` | `estudar.bat` |
+
+A app encontra o Claude e o Codex automaticamente. Se não os encontrar, indica o caminho em ⚙ **Definições**.
+Skills de PDF/DOCX/XLSX: `uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt` (no Docker já vêm incluídas).
 
 ## Estrutura
 

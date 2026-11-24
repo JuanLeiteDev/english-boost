@@ -1,0 +1,36 @@
+# English Boost with Docker (Linux, macOS, Windows + Docker Desktop)
+#   1st time:  docker compose build
+#              docker compose run --rm app login      # Claude, Codex (and GitHub) sign-in
+#   every day: docker compose up -d                    → http://127.0.0.1:8765
+#   stop:      docker compose down
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: english-boost:latest
+    container_name: english-boost
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${HOST_PORT:-8765}:8765"   # only reachable from this computer
+    environment:
+      HOST_PORT: ${HOST_PORT:-8765}
+      GIT_USER_NAME: ${GIT_USER_NAME:-}
+      GIT_USER_EMAIL: ${GIT_USER_EMAIL:-}
+      TZ: ${TZ:-Europe/Lisbon}
+    volumes:
+      - .:/workspace                          # the project (your files stay on your disk)
+      - claude-home:/home/student/.claude     # Claude login + sessions
+      - codex-home:/home/student/.codex       # Codex login + sessions
+      - gh-config:/home/student/.config/gh    # GitHub login (optional)
+    stdin_open: true
+    tty: true
+
+volumes:
+  claude-home:
+  codex-home:
+  gh-config:

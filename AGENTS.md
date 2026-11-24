@@ -27,7 +27,7 @@ Shared instructions for **Codex** (reads `AGENTS.md`) and **Claude Code** (reads
 | `plan/grammar-spine.md` | The fixed grammar sequence P1-01 … P2-17 (A1 to B2). |
 | `plan/weeks/semana-XX.md` | Day-by-day plan for each week. Generated or adjusted by `daily-study-planner`. |
 | `materials/grammar/` | Grammar units with explanations and exercises. Answer keys are in `materials/grammar/answers/`. |
-| `materials/official/` | Cambridge sample papers. **Not in git**: run `bash scripts/fetch-official-materials.sh`. |
+| `materials/official/` | Cambridge sample papers. **Not in git**: run `python3 scripts/fetch_official_materials.py` (Docker does this automatically). |
 | `materials/generated/` | Readings, worksheets and scenario cards created by the skills. |
 | `resources/catalog.md` | Curated, verified external resources (links checked on 2026-11-24). |
 | `research/` | The evidence base for the plan (literature review and curriculum comparison). |
@@ -65,7 +65,7 @@ All skills live in `.agents/skills/`, the single source. Codex reads them from t
 - **Tutoring:** `langtutor-session` handles daily mixed practice. `teach-me` handles a structured micro-course on a single point.
 - **Progress:** `langtutor-tracker` produces the numbers. `daily-study-planner` decides what changes in the plan. Errors go to `progress/error-log.md`.
 
-## Web app (`./estudar.sh` → http://127.0.0.1:8765)
+## Web app (`docker compose up -d` or `./estudar.sh` / `estudar.bat` → http://127.0.0.1:8765)
 
 The learner usually talks to you through the local web app (`app/`), not through the IDE. The app runs the Claude Code / Codex CLI headless in this folder.
 - **Open material in the side panel** by writing a marker on a line of its own:

@@ -61,7 +61,7 @@ APP_CONTEXT = """Contexto: estás a falar com o Juan através da app web local "
 CLAUDE_TOOLS = ",".join([
     "Read", "Write", "Edit", "Glob", "Grep", "Skill", "WebSearch", "WebFetch", "TodoWrite",
     "Bash(date*)", "Bash(ls*)", "Bash(cat*)", "Bash(pdftotext*)", "Bash(curl -s*)",
-    "Bash(python3 scripts/build_dashboard.py*)", "Bash(git status*)", "Bash(git log*)", "Bash(git diff*)",
+    "Bash(python3 scripts/build_dashboard.py*)", "Bash(python scripts/build_dashboard.py*)", "Bash(git status*)", "Bash(git log*)", "Bash(git diff*)",
 ])
 
 
@@ -80,9 +80,12 @@ def jsave(path: Path, data) -> None:
 
 
 def settings() -> dict:
-    s = {"codex_model": "gpt-6-sol", "claude_model": ""}
+    s = {"codex_model": "gpt-6-sol", "claude_model": "", "claude_bin": "", "codex_bin": ""}
     s.update(jload(STATE / "settings.json", {}))
     return s
+
+
+IS_WIN = os.name == "nt"
 
 
 def _ver(path: str):
@@ -90,28 +93,57 @@ def _ver(path: str):
     return tuple(int(x) for x in m.groups()) if m else (0, 0, 0)
 
 
-def find_claude() -> str | None:
-    if os.environ.get("CLAUDE_BIN"):
-        return os.environ["CLAUDE_BIN"]
-    if shutil.which("claude"):
-        return shutil.which("claude")
-    pats = ["~/.vscode/extensions/anthropic.claude-code-*/resources/native-binary/claude*",
-            "~/.cursor/extensions/anthropic.claude-code-*/resources/native-binary/claude*",
-            "~/.local/bin/claude", "~/.claude/local/claude"]
-    found = [p for pat in pats for p in glob.glob(os.path.expanduser(pat)) if os.access(p, os.X_OK)]
+def _usable(p: str) -> bool:
+    # Windows .cmd/.bat shims (npm) can't safely receive multi-line prompts as arguments,
+    # so only real executables are accepted.
+    if not p or not os.path.isfile(p):
+        return False
+    if IS_WIN:
+        return p.lower().endswith(".exe")
+    return os.access(p, os.X_OK)
+
+
+def _first(cands: list[str]) -> str | None:
+    found = []
+    for pat in cands:
+        found += [p for p in glob.glob(os.path.expanduser(os.path.expandvars(pat)), recursive=True) if _usable(p)]
     return sorted(found, key=_ver)[-1] if found else None
 
 
-def find_codex() -> str | None:
-    if os.environ.get("CODEX_BIN"):
-        return os.environ["CODEX_BIN"]
-    if shutil.which("codex"):
-        return shutil.which("codex")
-    for p in ["/usr/lib/chatgpt/resources/codex", "/Applications/Codex.app/Contents/Resources/codex",
-              os.path.expanduser("~/.local/bin/codex")]:
-        if os.access(p, os.X_OK):
-            return p
+def _which(name: str) -> str | None:
+    p = shutil.which(name)
+    if p and _usable(p):
+        return p
+    if IS_WIN:
+        p = shutil.which(name + ".exe")
+        return p if p and _usable(p) else None
     return None
+
+
+def find_claude() -> str | None:
+    for p in (os.environ.get("CLAUDE_BIN"), settings().get("claude_bin")):
+        if p and _usable(p):
+            return p
+    return _which("claude") or _first([
+        "~/.local/bin/claude", "~/.local/bin/claude.exe", "~/.claude/local/claude",
+        "~/.vscode/extensions/anthropic.claude-code-*/resources/native-binary/claude*",
+        "~/.vscode-insiders/extensions/anthropic.claude-code-*/resources/native-binary/claude*",
+        "~/.cursor/extensions/anthropic.claude-code-*/resources/native-binary/claude*",
+        "%APPDATA%/npm/node_modules/@anthropic-ai/claude-code*/**/claude.exe",
+    ])
+
+
+def find_codex() -> str | None:
+    for p in (os.environ.get("CODEX_BIN"), settings().get("codex_bin")):
+        if p and _usable(p):
+            return p
+    return _which("codex") or _first([
+        "/usr/lib/chatgpt/resources/codex", "/Applications/Codex.app/Contents/Resources/codex",
+        "~/.local/bin/codex", "~/.local/bin/codex.exe",
+        "%LOCALAPPDATA%/Programs/*/resources/codex.exe",
+        "%APPDATA%/npm/node_modules/@openai/codex*/**/codex.exe",
+        "/usr/local/lib/node_modules/@openai/codex*/**/codex", "/usr/lib/node_modules/@openai/codex*/**/codex",
+    ])
 
 
 def codex_models() -> list[str]:
@@ -192,6 +224,7 @@ def state_payload() -> dict:
         "units_done": sum(1 for u in spine if u["status"] in ("done", "ok")),
         "units_total": len(spine),
         "agents": {"claude": bool(find_claude()), "codex": bool(find_codex())},
+        "paths": {"claude": find_claude() or "", "codex": find_codex() or ""}, "os": os.name,
         "settings": s, "codex_models": codex_models(),
     }
 
@@ -258,7 +291,7 @@ def close_session(d: dict) -> dict:
 
 def git_save() -> dict:
     def run(*a):
-        r = subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True)
+        r = subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
         return r.returncode, (r.stdout + r.stderr).strip()
     out = []
     run("add", "-A")
@@ -332,18 +365,21 @@ def run_agent(agent: str, text: str, emit) -> None:
             emit({"t": "error", "v": "Não encontrei o Codex CLI."}); return
         prompt = (APP_CONTEXT + "\n\n---\n\n" + text) if first else text
         model = s.get("codex_model") or "gpt-6-sol"
+        # In Docker the container is the sandbox (Codex's own sandbox needs kernel features
+        # containers usually lack), so compose.yaml sets CODEX_SANDBOX=danger-full-access.
+        sandbox = os.environ.get("CODEX_SANDBOX", "workspace-write")
         if conv.get("session"):
             cmd = [binp, "exec", "resume", conv["session"], "--json", "-m", model,
-                   "-c", 'sandbox_mode="workspace-write"', "--skip-git-repo-check", prompt]
+                   "-c", f'sandbox_mode="{sandbox}"', "--skip-git-repo-check", prompt]
         else:
-            cmd = [binp, "exec", "--json", "-m", model, "-s", "workspace-write", "--skip-git-repo-check", prompt]
+            cmd = [binp, "exec", "--json", "-m", model, "-s", sandbox, "--skip-git-repo-check", prompt]
 
     conv["messages"].append({"role": "user", "text": text, "ts": dt.datetime.now().isoformat(timespec="seconds")})
     reply = {"role": "assistant", "text": "", "tools": [], "agent": agent,
              "ts": dt.datetime.now().isoformat(timespec="seconds")}
     try:
         proc = subprocess.Popen(cmd, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, text=True, bufsize=1)
+                                stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace", bufsize=1)
     except OSError as e:
         emit({"t": "error", "v": f"Falha ao iniciar o agente: {e}"}); return
     RUNNING[agent] = proc
@@ -552,9 +588,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(close_session(d))
         if p == "/api/settings":
             s = settings()
-            for k in ("codex_model", "claude_model"):
+            for k in ("codex_model", "claude_model", "claude_bin", "codex_bin"):
                 if k in d:
-                    s[k] = str(d[k])[:60]
+                    s[k] = str(d[k]).strip().strip('"')[:400]
             jsave(STATE / "settings.json", s)
             return self._json(s)
         if p == "/api/git/save":
@@ -563,11 +599,17 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    for stream in (sys.stdout, sys.stderr):  # Windows consoles/redirects may not be UTF-8
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
     ap = argparse.ArgumentParser(description="English Boost web app")
     ap.add_argument("--port", type=int, default=PORT)
+    ap.add_argument("--host", default="127.0.0.1", help="0.0.0.0 only inside Docker (compose publishes it on 127.0.0.1)")
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args()
-    srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
+    srv = ThreadingHTTPServer((a.host, a.port), Handler)
     url = f"http://127.0.0.1:{a.port}"
     print(f"English Boost a correr em {url}  (Ctrl+C para sair)")
     print(f"  Claude: {find_claude() or 'não encontrado'}")
