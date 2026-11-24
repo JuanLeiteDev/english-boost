@@ -44,3 +44,7 @@ diff -r "$S/ct/skills/tutor" .agents/skills/tutor   # rever as diferenças antes
 ```
 
 Volta sempre a aplicar as adaptações da tabela (ex.: `literature-review`) depois de atualizar.
+
+## Fonte da interface
+
+- **Inter** (variável, subconjunto latino), em `app/static/fonts/`: © The Inter Project Authors, SIL Open Font License 1.1 (`LICENSE-Inter.txt`). Origem: `@fontsource-variable/inter@5.1.0`.

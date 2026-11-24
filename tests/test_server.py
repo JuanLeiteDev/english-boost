@@ -187,6 +187,28 @@ class TestChat(ServerTestCase):
         hist = self.srv.get_json("/api/chat/history?agent=claude")["messages"]
         self.assertEqual([m["role"] for m in hist], ["user", "assistant", "user", "assistant"])
 
+    def test_stream_is_chunked_and_terminated(self):
+        """The browser must see a clean end of stream (zero-length chunk), not an aborted request."""
+        import http.client
+        import socket
+        self.reset("claude")
+        body = json.dumps({"agent": "claude", "text": "olá"}).encode()
+        s = socket.create_connection(("127.0.0.1", self.srv.port), timeout=30)
+        s.sendall(b"POST /api/chat/send HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\nX-Token: " + self.srv.token.encode() +
+                  b"\r\nContent-Type: application/json\r\nContent-Length: " + str(len(body)).encode() + b"\r\n\r\n" + body)
+        raw = b""
+        while True:
+            chunk = s.recv(65536)
+            if not chunk:
+                break
+            raw += chunk
+        s.close()
+        head, _, rest = raw.partition(b"\r\n\r\n")
+        self.assertIn(b"HTTP/1.1 200", head)
+        self.assertIn(b"Transfer-Encoding: chunked", head)
+        self.assertTrue(rest.endswith(b"0\r\n\r\n"), rest[-40:])
+        self.assertIn(b'"t": "done"', rest)
+
     def test_codex_context_once_then_resume(self):
         self.reset("codex")
         ev = self.srv.chat("codex", "primeira")

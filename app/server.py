@@ -853,8 +853,9 @@ class Handler(BaseHTTPRequestHandler):
         if p.startswith("/static/"):
             f = (STATIC / p[len("/static/"):]).resolve()
             if STATIC.resolve() in f.parents and f.is_file():
-                ct = {".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml"}.get(f.suffix, "application/octet-stream")
-                return self._send(200, f.read_bytes(), ct + "; charset=utf-8")
+                ct = {".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml",
+                      ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8"}.get(f.suffix, "application/octet-stream")
+                return self._send(200, f.read_bytes(), ct)
             return self._send(404, b"not found", "text/plain")
         if p == "/api/health":
             return self._json({"ok": True, "env": ENV_ID, "agents": {"claude": bool(find_claude()), "codex": bool(find_codex())}})
@@ -910,10 +911,14 @@ class Handler(BaseHTTPRequestHandler):
             if not reserve(agent):
                 return self._json({"error": "O agente ainda está a responder."}, 409)
             try:
+                # HTTP/1.1 chunked streaming: the end of the reply is an explicit zero-length chunk,
+                # so browsers see a clean finish instead of an aborted request on connection close.
+                self.protocol_version = "HTTP/1.1"
                 self.send_response(200)
                 self.send_header("Content-Type", "application/x-ndjson; charset=utf-8")
                 self.send_header("Cache-Control", "no-store")
-                self.send_header("Connection", "close")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("Transfer-Encoding", "chunked")
                 self.end_headers()
                 self._sent = True
             except OSError:
@@ -921,15 +926,30 @@ class Handler(BaseHTTPRequestHandler):
                 return
             alive = {"ok": True}
 
+            def write_chunk(data: bytes):
+                self.wfile.write(b"%x\r\n%s\r\n" % (len(data), data))
+                self.wfile.flush()
+
             def emit(obj):
                 if not alive["ok"]:
                     return
                 try:
-                    self.wfile.write((json.dumps(obj, ensure_ascii=False) + "\n").encode())
-                    self.wfile.flush()
+                    write_chunk((json.dumps(obj, ensure_ascii=False) + "\n").encode())
                 except OSError:
                     alive["ok"] = False  # browser closed; keep running so the reply is saved
-            run_agent(agent, text, emit)  # releases the slot itself
+            try:
+                run_agent(agent, text, emit)  # releases the slot itself
+            finally:
+                if alive["ok"]:
+                    try:
+                        self.wfile.write(b"0\r\n\r\n")
+                        self.wfile.flush()
+                    except OSError:
+                        alive["ok"] = False
+                # HTTP/1.1 keep-alive unless the client asked to close or went away; the explicit
+                # zero-length chunk above is what marks a complete reply.
+                if not alive["ok"]:
+                    self.close_connection = True
             return
         if p == "/api/chat/stop":
             return self._json({"ok": True, "stopped": stop_agent(str(d.get("agent")))})
