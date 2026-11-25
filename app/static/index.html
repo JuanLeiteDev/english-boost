@@ -1,177 +1,159 @@
 <!doctype html>
-<html lang="pt">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>English Boost</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234f46e5'/%3E%3Cstop offset='1' stop-color='%23a855f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Cpath d='M11 10h10M11 16h7M11 22h10M11 10v12' stroke='white' stroke-width='2.6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
-<link rel="preload" href="/static/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='6' fill='%23f9f7f2' stroke='%23b9b3a5'/%3E%3Ctext x='16' y='20.5' text-anchor='middle' font-family='Arial' font-weight='700' font-size='12' fill='%23141411'%3EEB%3C/text%3E%3Crect x='19' y='24' width='5' height='1.6' fill='%23b03a09'/%3E%3C/svg%3E">
+<link rel="preload" href="/static/fonts/schibsted-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/static/style.css">
-<script>window.TOKEN = "__TOKEN__";</script>
+<script>window.TOKEN = "__TOKEN__"; try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = JSON.parse(t); } catch (e) {}</script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
   <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
-  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-6"/></symbol>
-  <symbol id="i-library" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></symbol>
   <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M15 3v18"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
   <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
-  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" stroke="none"/></symbol>
-  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
-  <symbol id="i-message" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></symbol>
-  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
-  <symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></symbol>
-  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 12h2M6 8v8M10 5v14M14 9v6M18 7v10M22 12h-2"/></symbol>
-  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
-  <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></symbol>
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
-  <symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
   <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></symbol>
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M12 13v8M8 17l4-4 4 4"/><path d="M20 16.6A5 5 0 0 0 18 7h-1.3A8 8 0 1 0 4 15.3"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></symbol>
-  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
-  <symbol id="i-checkbox" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
-  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-4-3-6-4-9-1 2-2 3-4 4 0-2-1-4-2-5-1 4-4 6-4 10a7 7 0 0 0 7 7z"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
-  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
   <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
   <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/></symbol>
-  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8C5.1 2.7 6.4 2 8 2c3 0 5 2 8 2 1.3 0 2.5-.3 3.6-.8a.5.5 0 0 1 .4.5V15a1 1 0 0 1-.4.8c-1.1.7-2.4 1.2-3.6 1.2-3 0-5-2-8-2-1.6 0-2.9.6-3.6 1.1"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
 </svg>
 
-<nav class="rail" aria-label="Navegação">
-  <div class="logo" aria-hidden="true">EB</div>
-  <a class="nav" href="#study" data-view="study" data-tip="Estudar" aria-label="Estudar"><svg class="i"><use href="#i-chat"/></svg><span class="lbl">Estudar</span></a>
-  <a class="nav" href="#grammar" data-view="grammar" data-tip="Gramática" aria-label="Gramática"><svg class="i"><use href="#i-book"/></svg><span class="lbl">Gramática</span></a>
-  <a class="nav" href="#progress" data-view="progress" data-tip="Progresso" aria-label="Progresso"><svg class="i"><use href="#i-chart"/></svg><span class="lbl">Progresso</span></a>
-  <a class="nav" href="#resources" data-view="resources" data-tip="Recursos" aria-label="Recursos"><svg class="i"><use href="#i-library"/></svg><span class="lbl">Recursos</span></a>
-  <div class="rail-spacer"></div>
-  <button class="nav" id="btn-settings" data-tip="Definições" aria-label="Definições"><svg class="i"><use href="#i-sliders"/></svg><span class="lbl">Ajustes</span></button>
-</nav>
-
-<main>
-  <section class="view" id="view-study">
-    <div class="chat">
-      <header class="chat-head">
-        <div class="seg" id="agent-seg" role="tablist" aria-label="Agente">
-          <span class="thumb"></span>
-          <button data-agent="claude" role="tab"><span class="status-dot" data-dot="claude"></span>Claude</button>
-          <button data-agent="codex" role="tab"><span class="status-dot" data-dot="codex"></span>Codex</button>
-        </div>
-        <div class="head-actions">
-          <button class="icon" id="btn-new" title="Nova conversa" aria-label="Nova conversa"><svg class="i"><use href="#i-plus"/></svg></button>
-          <button class="icon" id="btn-panel" title="Painel" aria-label="Mostrar painel"><svg class="i"><use href="#i-panel"/></svg></button>
-        </div>
-      </header>
-      <div class="msgs" id="msgs" aria-live="polite"></div>
-      <div class="composer">
-        <div class="chips" id="chips-inline"></div>
-        <div class="box">
-          <textarea id="input" rows="1" placeholder="Escreve ou fala em inglês" aria-label="Mensagem"></textarea>
-          <button class="icon" id="btn-mic" title="Falar (inglês)" aria-label="Ditado"><svg class="i"><use href="#i-mic"/></svg></button>
-          <button class="send" id="btn-send" title="Enviar" aria-label="Enviar"><svg class="i"><use href="#i-up"/></svg></button>
-        </div>
-        <div class="hint"><kbd>Enter</kbd> enviar · <kbd>Shift</kbd> + <kbd>Enter</kbd> nova linha</div>
-      </div>
+<aside class="side" aria-label="Navigation">
+  <a class="brand" href="#study"><span class="mark">EB</span><span class="name">English Boost</span></a>
+  <nav class="spine">
+    <a class="nav" href="#study" data-view="study" data-tip="Study"><span class="node"></span><span class="num">00</span><span class="lbl">Study</span></a>
+    <a class="nav" href="#grammar" data-view="grammar" data-tip="Grammar"><span class="node"></span><span class="num">01</span><span class="lbl">Grammar</span></a>
+    <a class="nav" href="#progress" data-view="progress" data-tip="Progress"><span class="node"></span><span class="num">02</span><span class="lbl">Progress</span></a>
+  </nav>
+  <div class="side-foot">
+    <div class="count"><b id="count-days">–</b><span>days to Belgium</span></div>
+    <div class="side-row">
+      <a href="/guide" target="_blank" rel="noopener" title="Guide"><svg class="i sm"><use href="#i-book"/></svg><span>Guide</span></a>
+      <div><button class="icon" id="btn-theme" title="Theme" aria-label="Switch theme"></button><button class="icon" id="btn-settings" title="Settings" aria-label="Settings"><svg class="i"><use href="#i-sliders"/></svg></button></div>
     </div>
-    <aside class="panel" id="panel" aria-label="Painel">
-      <header class="panel-head">
-        <div class="seg" id="panel-tabs" role="tablist">
-          <span class="thumb"></span>
-          <button data-tab="today" role="tab">Hoje</button>
-          <button data-tab="unit" role="tab">Exercício</button>
-          <button data-tab="doc" role="tab">Documento</button>
-        </div>
-        <button class="icon" id="btn-panel-close" title="Fechar" aria-label="Fechar painel"><svg class="i"><use href="#i-x"/></svg></button>
-      </header>
-      <div class="panel-body" id="panel-today"></div>
-      <div class="panel-body" id="panel-unit"></div>
-      <div class="panel-body" id="panel-doc"></div>
-    </aside>
+  </div>
+</aside>
+
+<main class="work">
+  <section class="view" id="view-study">
+    <header class="work-head">
+      <span class="eyebrow" id="eyebrow">English Boost</span>
+      <nav class="tabs" id="panel-tabs" role="tablist">
+        <span class="thumb"></span>
+        <button data-tab="today" role="tab"><span class="num">01</span>Today</button>
+        <button data-tab="unit" role="tab"><span class="num">02</span>Exercise</button>
+        <button data-tab="doc" role="tab"><span class="num">03</span>Document</button>
+      </nav>
+    </header>
+    <div class="pane" id="panel-today"></div>
+    <div class="pane" id="panel-unit"></div>
+    <div class="pane" id="panel-doc"></div>
   </section>
 
   <section class="view page" id="view-grammar">
     <div class="page-head">
-      <div><div class="eyebrow">Espinha de gramática</div><h1>Gramática</h1><p id="g-sub"></p></div>
+      <div><span class="eyebrow">Grammar spine · A1 to B2</span><h1>Grammar</h1><p id="g-sub"></p></div>
     </div>
     <div class="filters">
       <div class="seg" id="g-filter">
-        <span class="thumb"></span>
-        <button data-f="all">Todas</button>
-        <button data-f="todo">Por fazer</button>
-        <button data-f="redo">A repetir</button>
-        <button data-f="done">Concluídas</button>
+        <button data-f="all"><span class="lbl">All</span></button>
+        <button data-f="todo"><span class="lbl">To do</span></button>
+        <button data-f="redo"><span class="lbl">Repeat</span></button>
+        <button data-f="done"><span class="lbl">Done</span></button>
       </div>
-      <div class="legend"><span><i class="st st-done"></i>dominada</span><span><i class="st st-ok"></i>feita</span><span><i class="st st-redo"></i>repetir</span><span><i class="st st-todo"></i>por fazer</span></div>
+      <div class="legend"><span><i class="st st-done"></i>mastered</span><span><i class="st st-ok"></i>done</span><span><i class="st st-redo"></i>repeat</span><span><i class="st st-todo"></i>to do</span></div>
     </div>
     <div class="units" id="units"></div>
   </section>
 
   <section class="view page" id="view-progress">
     <div class="page-head">
-      <div><div class="eyebrow">Até 01/02/2027</div><h1>Progresso</h1><p id="p-sub"></p></div>
-      <button class="btn ghost" id="btn-git"><svg class="i sm"><use href="#i-cloud"/></svg><span>Guardar no Git</span></button>
+      <div><span class="eyebrow">Until 01 Feb 2027</span><h1>Progress</h1><p id="p-sub"></p></div>
+      <button class="btn ghost" id="btn-git"><svg class="i sm"><use href="#i-cloud"/></svg><span>Save to GitHub</span></button>
     </div>
     <div id="progress"></div>
   </section>
-
-  <section class="view page" id="view-resources">
-    <div class="page-head">
-      <div><div class="eyebrow">Materiais e plano</div><h1>Recursos</h1></div>
-      <a class="btn quiet sm" href="/guia" target="_blank" rel="noopener">Guia <svg class="i sm"><use href="#i-external"/></svg></a>
-    </div>
-    <div><div class="seg" id="res-seg">
-      <span class="thumb"></span>
-      <button data-doc="resources/catalog.md">Links</button>
-      <button data-doc="plan/master-plan.md">Plano</button>
-      <button data-doc="@week">Semana</button>
-      <button data-doc="research/2026-11-24-fundamentacao.md">Estudos</button>
-    </div></div>
-    <article class="doc" id="res-doc"></article>
-  </section>
 </main>
+
+<aside class="chat" id="chat" aria-label="Tutor chat">
+  <header class="chat-head">
+    <div class="title">
+      <span class="eyebrow">Tutor</span>
+      <div class="seg" id="agent-seg" role="tablist" aria-label="Agent">
+        <button data-agent="claude" role="tab"><span class="dot" data-dot="claude"></span><span class="lbl">Claude</span></button>
+        <button data-agent="codex" role="tab"><span class="dot" data-dot="codex"></span><span class="lbl">Codex</span></button>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="icon" id="btn-new" title="New chat" aria-label="New chat"><svg class="i"><use href="#i-plus"/></svg></button>
+      <button class="icon" id="btn-chat-close" title="Close" aria-label="Close chat"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+  </header>
+  <div class="msgs" id="msgs" aria-live="polite"></div>
+  <div class="composer">
+    <div class="chips" id="chips-inline"></div>
+    <div class="box">
+      <textarea id="input" rows="1" placeholder="Write or speak in English" aria-label="Message"></textarea>
+      <button class="icon" id="btn-mic" title="Speak (English)" aria-label="Speak"><svg class="i"><use href="#i-mic"/></svg></button>
+      <button class="send" id="btn-send" title="Send" aria-label="Send"><svg class="i"><use href="#i-up"/></svg></button>
+    </div>
+    <div class="rec-bar" id="rec-bar"><i></i><span id="rec-text">Recording</span></div>
+    <div class="hint"><span><kbd>Enter</kbd> send</span><span><kbd>Shift</kbd>+<kbd>Enter</kbd> new line</span></div>
+  </div>
+</aside>
+<button class="chat-fab" id="btn-chat" aria-label="Open chat"><svg class="i lg"><use href="#i-chat"/></svg></button>
 
 <dialog id="dlg-close">
   <form method="dialog" class="form">
-    <div class="form-head"><h2>Terminar sessão</h2><button class="icon" value="cancel" aria-label="Fechar"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="form-head"><div><span class="eyebrow">Session log</span><h2>Finish session</h2></div><button class="icon" value="cancel" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
     <div class="grid2">
-      <label>Minutos <input name="minutes" type="number" min="0" max="400"></label>
-      <label>Palavras novas <input name="words" type="number" min="0" value="8"></label>
-      <label>Gramática <input name="grammar"></label>
-      <label>% gramática <input name="pct" type="number" min="0" max="100"></label>
-      <label class="full">Listening <input name="listening"></label>
+      <label>Minutes <input name="minutes" type="number" min="0" max="400"><small>From the timer. Change it if you studied without it.</small></label>
+      <label>New words <input name="words" type="number" min="0" value="8"><small>New cards you added to AnkiWeb today.</small></label>
+      <label>Grammar unit <input name="grammar" placeholder="P1-02"><small>The unit you practised today.</small></label>
+      <label>Grammar score % <input name="pct" type="number" min="0" max="100"><small>Filled in after you press Check and Save.</small></label>
+      <label class="full">Listening <input name="listening" placeholder="VOA lesson 2"><small>What you listened to (resource and lesson).</small></label>
       <label>Output
-        <select name="output"><option>speaking</option><option>writing</option><option>review</option><option>checkpoint</option></select></label>
-      <label>Notas <input name="notes" placeholder="opcional"></label>
+        <select name="output"><option value="speaking">speaking</option><option value="writing">writing</option><option value="review">review</option><option value="checkpoint">checkpoint</option></select><small>Your main practice today.</small></label>
+      <label>Notes <input name="notes" placeholder="optional"><small>Anything hard or important.</small></label>
     </div>
-    <div class="row-end"><button value="cancel" class="btn ghost">Cancelar</button><button value="ok" class="btn">Guardar sessão</button></div>
+    <div class="row-end"><button value="cancel" class="btn ghost">Cancel</button><button value="ok" class="btn">Save session <svg class="i sm arrow"><use href="#i-arrow"/></svg></button></div>
   </form>
 </dialog>
 
 <dialog id="dlg-settings">
   <form method="dialog" class="form">
-    <div class="form-head"><h2>Definições</h2><button class="icon" value="cancel" aria-label="Fechar"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="form-head"><div><span class="eyebrow">Settings</span><h2>Agents</h2></div><button class="icon" value="cancel" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
     <div class="grid2">
-      <label>Modelo Codex <select name="codex_model" id="set-codex"></select></label>
-      <label>Modelo Claude
-        <select name="claude_model"><option value="">Padrão</option><option value="opus">Opus</option><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option></select></label>
-      <label class="full">Caminho do Claude <input name="claude_bin" id="set-cbin" placeholder="automático"></label>
-      <label class="full">Caminho do Codex <input name="codex_bin" id="set-xbin" placeholder="automático"></label>
+      <label>Codex model <select name="codex_model" id="set-codex"></select></label>
+      <label>Claude model
+        <select name="claude_model"><option value="">Default</option><option value="opus">Opus</option><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option></select></label>
+      <label class="full">Claude path <input name="claude_bin" id="set-cbin" placeholder="automatic"></label>
+      <label class="full">Codex path <input name="codex_bin" id="set-xbin" placeholder="automatic"></label>
     </div>
     <p class="note" id="set-status"></p>
-    <div class="row-end"><button value="cancel" class="btn ghost">Fechar</button><button value="ok" class="btn">Guardar</button></div>
+    <div class="row-end"><button value="cancel" class="btn ghost">Close</button><button value="ok" class="btn">Save</button></div>
   </form>
 </dialog>
 

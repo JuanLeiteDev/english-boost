@@ -1,425 +1,283 @@
 <!doctype html>
-<html lang="pt">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Guia do English Boost</title>
+<title>English Boost Guide</title>
 <style>
-:root {
-  --bg:#f7f7f4; --surface:#ffffff; --soft:#efefea; --ink:#1c1c1e; --muted:#6a6a70; --line:#e2e2dc;
-  --accent:#2f6fde; --accent-soft:#e7effd; --good:#2e9e5b; --good-soft:#e4f4ea; --warn:#c77a22; --warn-soft:#fbefdf;
-  --code:#f3f3ef; --radius:14px;
-}
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg:#121214; --surface:#1b1b1f; --soft:#25252a; --ink:#ececef; --muted:#9c9ca4; --line:#2d2d33;
-  --accent:#6b9cff; --accent-soft:#1c2943; --good:#46b97a; --good-soft:#163020; --warn:#e3a04f; --warn-soft:#33261a; --code:#202025; } }
-:root[data-theme="dark"] {
-  --bg:#121214; --surface:#1b1b1f; --soft:#25252a; --ink:#ececef; --muted:#9c9ca4; --line:#2d2d33;
-  --accent:#6b9cff; --accent-soft:#1c2943; --good:#46b97a; --good-soft:#163020; --warn:#e3a04f; --warn-soft:#33261a; --code:#202025; }
+@font-face { font-family: "Schibsted Grotesk"; src: url("/static/fonts/schibsted-grotesk-latin-wght-normal.woff2") format("woff2"); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("/static/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
+:root { --bg:#f1eee6; --raised:#f9f7f2; --sunken:#e8e4da; --fg:#141411; --muted:#4f4d46; --subtle:#6b685f; --line:#d8d3c7; --line-strong:#b9b3a5; --signal:#b03a09; --signal-ink:#fdfbf7; --grid:#1414110f;
+  --font:"Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif; --mono:"JetBrains Mono", ui-monospace, monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0d0e0c; --raised:#141512; --sunken:#090a08; --fg:#ece9e1; --muted:#a6a398; --subtle:#8d8b81; --line:#262723; --line-strong:#3a3b36; --signal:#ff6b2c; --signal-ink:#0d0e0c; --grid:#ece9e10b; } }
+:root[data-theme="dark"] { --bg:#0d0e0c; --raised:#141512; --sunken:#090a08; --fg:#ece9e1; --muted:#a6a398; --subtle:#8d8b81; --line:#262723; --line-strong:#3a3b36; --signal:#ff6b2c; --signal-ink:#0d0e0c; --grid:#ece9e10b; }
 * { box-sizing:border-box; }
-html { scroll-behavior:smooth; scroll-padding-top:20px; }
-body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; -webkit-font-smoothing:antialiased; }
-.wrap { display:grid; grid-template-columns:240px minmax(0,1fr); max-width:1180px; margin:0 auto; gap:40px; padding:0 16px; }
-nav.toc { position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; padding:32px 0; font-size:14px; }
-nav.toc b { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:18px 0 6px; }
-nav.toc a { display:block; color:var(--muted); text-decoration:none; padding:3px 0 3px 10px; border-left:2px solid transparent; }
-nav.toc a:hover { color:var(--ink); border-left-color:var(--accent); }
-main { padding:40px 0 80px; min-width:0; }
-h1 { font-size:clamp(28px,4vw,38px); line-height:1.15; margin:0 0 10px; letter-spacing:-.02em; }
-h2 { font-size:24px; margin:64px 0 14px; letter-spacing:-.01em; padding-top:8px; }
-h3 { font-size:17px; margin:28px 0 8px; }
-p { margin:10px 0; }
-.lead { font-size:18px; color:var(--muted); max-width:720px; }
-.part { display:inline-block; font-size:12px; font-weight:650; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); background:var(--accent-soft); padding:3px 10px; border-radius:999px; margin-top:56px; }
-.part + h2 { margin-top:12px; }
-a { color:var(--accent); }
-code { font:13.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; background:var(--code); padding:1px 6px; border-radius:6px; }
-pre { position:relative; background:var(--code); border:1px solid var(--line); border-radius:12px; padding:14px 16px; overflow-x:auto; margin:12px 0; }
+html { scroll-behavior:smooth; scroll-padding-top:24px; }
+body { margin:0; color:var(--fg); background:var(--bg); background-image:radial-gradient(var(--grid) 1px, transparent 1px); background-size:22px 22px; font:400 17px/1.6 var(--font); -webkit-font-smoothing:antialiased; }
+.wrap { display:grid; grid-template-columns:230px minmax(0,1fr); max-width:1160px; margin:0 auto; gap:48px; padding:0 20px; }
+nav { position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; padding:40px 0; }
+nav b { display:block; font:500 11px var(--mono); text-transform:uppercase; letter-spacing:.08em; color:var(--subtle); margin:22px 0 8px; }
+nav a { display:flex; gap:12px; padding:5px 0 5px 14px; border-left:1px solid var(--line); color:var(--muted); text-decoration:none; font-size:15px; transition:color .12s, border-color .12s; }
+nav a span { font:500 11px var(--mono); color:var(--subtle); padding-top:3px; }
+nav a:hover { color:var(--signal); border-left-color:var(--signal); }
+main { padding:48px 0 96px; min-width:0; }
+.eyebrow { display:inline-flex; align-items:center; gap:10px; font:500 12.5px var(--mono); color:var(--muted); }
+.eyebrow::before { content:""; width:8px; height:8px; background:var(--signal); }
+h1 { font-size:clamp(44px,6vw,80px); line-height:.95; letter-spacing:-.055em; margin:18px 0 18px; font-weight:600; }
+h1 em { font-style:normal; color:var(--signal); }
+h2 { font-size:30px; letter-spacing:-.04em; margin:72px 0 14px; font-weight:600; display:flex; align-items:baseline; gap:14px; }
+h2 .n { font:500 13px var(--mono); color:var(--signal); }
+h3 { font-size:19px; letter-spacing:-.02em; margin:28px 0 8px; font-weight:600; }
+p { margin:10px 0; color:var(--muted); }
+p strong, li strong, td strong { color:var(--fg); font-weight:600; }
+.lead { font-size:21px; color:var(--muted); max-width:640px; letter-spacing:-.01em; }
+a { color:var(--fg); text-decoration-color:var(--line-strong); text-underline-offset:3px; }
+a:hover { color:var(--signal); text-decoration-color:var(--signal); }
+code { font:.84em var(--mono); background:var(--sunken); padding:.1em .4em; border-radius:2px; }
+pre { position:relative; background:var(--sunken); border:1px solid var(--line); border-radius:6px; padding:14px 16px; overflow-x:auto; margin:12px 0; }
 pre code { background:none; padding:0; font-size:13.5px; }
-pre .copy { position:absolute; top:8px; right:8px; border:1px solid var(--line); background:var(--surface); color:var(--muted); border-radius:8px; font-size:12px; padding:3px 9px; cursor:pointer; }
-pre .copy:hover { color:var(--ink); }
-.cmt { color:var(--muted); }
-.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:18px 0; }
-.card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; }
-.card .ico { font-size:22px; }
-.card h4 { margin:6px 0 4px; font-size:15px; }
-.card p { margin:0; font-size:14px; color:var(--muted); }
-table { width:100%; border-collapse:collapse; font-size:14.5px; margin:12px 0; }
-.tw { overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
-.tw table { margin:0; }
-th, td { text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+.cmt { color:var(--subtle); }
+pre .copy { position:absolute; top:8px; right:8px; border:1px solid var(--line-strong); background:var(--raised); color:var(--muted); border-radius:2px; font:500 11px var(--mono); padding:3px 8px; cursor:pointer; }
+pre .copy:hover { color:var(--signal); border-color:var(--signal); }
+.tw { overflow-x:auto; border:1px solid var(--line); border-radius:6px; background:var(--raised); margin:14px 0; }
+table { width:100%; border-collapse:collapse; font-size:15.5px; }
+th, td { text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
 tr:last-child td { border-bottom:0; }
-th { font-size:12.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; background:var(--soft); }
-.note { border-radius:12px; padding:12px 16px; margin:14px 0; font-size:15px; border:1px solid var(--line); background:var(--surface); }
-.note.good { background:var(--good-soft); border-color:transparent; }
-.note.warn { background:var(--warn-soft); border-color:transparent; }
-.note.info { background:var(--accent-soft); border-color:transparent; }
-.steps { counter-reset:s; list-style:none; padding:0; margin:14px 0; }
-.steps > li { counter-increment:s; position:relative; padding:2px 0 14px 44px; }
-.steps > li::before { content:counter(s); position:absolute; left:0; top:0; width:30px; height:30px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-weight:650; font-size:14px; }
-.tabs { display:inline-flex; background:var(--soft); border-radius:11px; padding:3px; gap:2px; margin:10px 0 4px; flex-wrap:wrap; }
-.tabs button { border:0; background:none; color:var(--muted); padding:7px 14px; border-radius:8px; font:inherit; font-size:14px; cursor:pointer; }
-.tabs button.on { background:var(--surface); color:var(--ink); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.06); }
+th { font:500 11px var(--mono); text-transform:uppercase; letter-spacing:.06em; color:var(--subtle); }
+td:first-child { white-space:nowrap; }
+.steps { list-style:none; counter-reset:s; padding:0; margin:16px 0; border-top:1px solid var(--line); }
+.steps > li { counter-increment:s; display:grid; grid-template-columns:44px 1fr; padding:16px 0; border-bottom:1px solid var(--line); }
+.steps > li::before { content:counter(s, decimal-leading-zero); font:500 12px var(--mono); color:var(--signal); padding-top:5px; }
+.note { border:1px solid var(--line); border-left:2px solid var(--signal); background:var(--raised); border-radius:0 6px 6px 0; padding:12px 16px; margin:16px 0; color:var(--muted); font-size:15.5px; }
+.tabs { display:flex; gap:22px; border-bottom:1px solid var(--line); margin:14px 0 6px; }
+.tabs button { border:0; background:none; font:inherit; font-size:15px; color:var(--muted); padding:8px 0 12px; cursor:pointer; position:relative; }
+.tabs button.on { color:var(--fg); }
+.tabs button.on::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--signal); }
 .pane { display:none; } .pane.on { display:block; }
-.timeline { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
-.phase { border-radius:var(--radius); padding:14px 16px; background:var(--surface); border:1px solid var(--line); }
-.phase small { color:var(--muted); display:block; }
-.phase b { display:block; margin:4px 0; }
-.diagram { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin:16px 0; overflow-x:auto; }
-.diagram svg { display:block; width:100%; min-width:640px; height:auto; }
-.d-box { fill:var(--soft); stroke:var(--line); stroke-width:1.5; }
-.d-acc { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
-.d-good { fill:var(--good-soft); stroke:var(--good); stroke-width:1.5; }
-.d-dash { fill:none; stroke:var(--accent); stroke-width:1.5; stroke-dasharray:6 5; }
-.d-t { fill:var(--ink); font:600 13px system-ui,sans-serif; }
-.d-s { fill:var(--muted); font:12px system-ui,sans-serif; }
-.d-line { stroke:var(--muted); stroke-width:1.5; fill:none; }
-.d-lbl { fill:var(--accent); font:600 11px system-ui,sans-serif; }
-details { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 16px; margin:8px 0; }
-details summary { cursor:pointer; font-weight:600; }
-details[open] summary { margin-bottom:6px; }
-.kbd { font:12px ui-monospace,monospace; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; padding:0 6px; background:var(--surface); }
-footer { color:var(--muted); font-size:13px; margin-top:64px; border-top:1px solid var(--line); padding-top:16px; }
-.theme { position:fixed; right:16px; bottom:16px; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:999px; width:40px; height:40px; cursor:pointer; font-size:17px; }
-@media (max-width:900px) {
-  .wrap { grid-template-columns:1fr; gap:0; }
-  nav.toc { position:static; height:auto; padding:20px 0 0; display:none; }
-  .timeline { grid-template-columns:1fr; }
-  main { padding-top:24px; }
-}
+.diagram { border:1px solid var(--line); border-radius:14px; background:var(--raised); padding:18px; margin:16px 0; overflow-x:auto; }
+.diagram svg { display:block; width:100%; min-width:620px; height:auto; }
+.d-box { fill:var(--sunken); stroke:var(--line-strong); }
+.d-acc { fill:var(--raised); stroke:var(--signal); stroke-width:1.5; }
+.d-t { fill:var(--fg); font:600 13px var(--font); }
+.d-s { fill:var(--muted); font:12px var(--mono); }
+.d-line { stroke:var(--subtle); stroke-width:1.2; fill:none; }
+.d-lbl { fill:var(--signal); font:500 11px var(--mono); }
+.d-dash { fill:none; stroke:var(--signal); stroke-dasharray:5 5; }
+details { border-bottom:1px solid var(--line); padding:12px 0; }
+details summary { cursor:pointer; font-weight:500; }
+details[open] summary { color:var(--signal); }
+footer { margin-top:80px; padding-top:18px; border-top:1px solid var(--line); font:500 12px var(--mono); color:var(--subtle); }
+.theme { position:fixed; right:18px; bottom:18px; border:1px solid var(--line-strong); background:var(--raised); color:var(--fg); border-radius:6px; width:40px; height:40px; cursor:pointer; font:500 12px var(--mono); }
+@media (max-width:900px) { .wrap { grid-template-columns:1fr; gap:0; } nav { display:none; } main { padding-top:28px; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-<nav class="toc">
-  <b>Usar</b>
-  <a href="#resumo">Em resumo</a>
-  <a href="#arrancar">Arrancar a app</a>
-  <a href="#dia">Um dia de estudo</a>
-  <a href="#app">A app, menu a menu</a>
-  <a href="#plano">O plano</a>
-  <a href="#skills">As skills</a>
-  <b>Técnico</b>
-  <a href="#arquitetura">Arquitetura</a>
-  <a href="#chat">Como funciona o chat</a>
-  <a href="#auth">Autenticação</a>
-  <a href="#docker">Docker por dentro</a>
-  <a href="#seguranca">Segurança</a>
-  <a href="#ficheiros">Ficheiros e dados</a>
-  <b>Outro PC</b>
-  <a href="#outro-pc">Instalar noutro PC</a>
-  <a href="#testes">Testes</a>
-  <a href="#problemas">Problemas comuns</a>
-  <a href="#limites">Limites conhecidos</a>
+<nav>
+  <b>Use</b>
+  <a href="#start"><span>01</span>Start the app</a>
+  <a href="#day"><span>02</span>One study day</a>
+  <a href="#finish"><span>03</span>Finish a session</a>
+  <a href="#screens"><span>04</span>The screens</a>
+  <a href="#mic"><span>05</span>Microphone</a>
+  <a href="#plan"><span>06</span>The plan</a>
+  <b>Technical</b>
+  <a href="#how"><span>07</span>How it works</a>
+  <a href="#auth"><span>08</span>Accounts</a>
+  <a href="#docker"><span>09</span>Docker</a>
+  <a href="#safety"><span>10</span>Security</a>
+  <b>Other computer</b>
+  <a href="#install"><span>11</span>Install</a>
+  <a href="#help"><span>12</span>Problems</a>
 </nav>
 
 <main>
-<h1>English Boost: guia completo</h1>
-<p class="lead">O que foi construído, como usar no dia a dia, o que está por trás (Docker, autenticação do Claude e do Codex) e como pôr tudo a correr noutro computador, em Linux ou Windows.</p>
+<span class="eyebrow">English Boost · guide</span>
+<h1>Study every day.<br>Arrive <em>ready.</em></h1>
+<p class="lead">How to use the app, what is behind it, and how to run it on another computer (Linux, macOS or Windows).</p>
 
-<span class="part">Parte 1 · Usar</span>
-<h2 id="resumo">Em resumo</h2>
-<p>Um projeto Git que é, ao mesmo tempo, <b>um plano de estudo</b> (de A2 a B1 sólido até 01/02/2027), <b>uma equipa de tutores de IA</b> (skills para o Claude e o Codex) e <b>uma app web</b> onde estudas todos os dias.</p>
-<div class="cards">
-  <div class="card"><div class="ico">📅</div><h4>Plano fundamentado</h4><p>10 semanas, 45 unidades de gramática e 4 checkpoints, com base em estudos verificados.</p></div>
-  <div class="card"><div class="ico">🧠</div><h4>21 skills</h4><p>18 externas e 3 criadas para ti: planeador diário, examinador CEFR e coach de speaking.</p></div>
-  <div class="card"><div class="ico">💬</div><h4>App de estudo</h4><p>Chat com o Claude ou o Codex, um painel que abre o material e exercícios com correção automática.</p></div>
-  <div class="card"><div class="ico">🔑</div><h4>Sem API</h4><p>Os agentes usam as tuas subscrições (Claude e ChatGPT), sem chaves de API nem custos extra.</p></div>
-</div>
+<h2 id="start"><span class="n">01</span>Start the app</h2>
+<div class="tabs" data-group="run"><button class="on" data-pane="r1">Docker</button><button data-pane="r2">Linux</button><button data-pane="r3">Windows</button></div>
+<div class="pane on" id="r1"><pre><code>docker compose up -d     <span class="cmt"># start (it also starts with Docker)</span>
+docker compose down      <span class="cmt"># stop</span></code></pre></div>
+<div class="pane" id="r2"><pre><code>./estudar.sh</code></pre></div>
+<div class="pane" id="r3"><pre><code>estudar.bat</code></pre></div>
+<p>Then open <a href="http://127.0.0.1:8765">http://127.0.0.1:8765</a>. Use only one way at a time: they share port 8765.</p>
 
-<h2 id="arrancar">Arrancar a app</h2>
-<div class="tabs" data-group="run"><button class="on" data-pane="run-docker">🐳 Docker</button><button data-pane="run-linux">🐧 Linux nativo</button><button data-pane="run-win">🪟 Windows nativo</button></div>
-<div class="pane on" id="run-docker">
-<pre><code>docker compose up -d     <span class="cmt"># liga (e fica ligada; arranca sozinha com o Docker)</span>
-docker compose down      <span class="cmt"># desliga</span></code></pre>
-<p>Abre <a href="http://127.0.0.1:8765">http://127.0.0.1:8765</a>. Funciona igual em Linux, macOS e Windows.</p>
-</div>
-<div class="pane" id="run-linux"><pre><code>./estudar.sh             <span class="cmt"># abre o browser em http://127.0.0.1:8765 · Ctrl+C para sair</span></code></pre></div>
-<div class="pane" id="run-win"><pre><code>estudar.bat              <span class="cmt"># duplo-clique ou na PowerShell · abre http://127.0.0.1:8765</span></code></pre></div>
-<div class="note info">Usa uma variante de cada vez. As duas ocupam a porta 8765.</div>
-
-<h2 id="dia">Um dia de estudo</h2>
+<h2 id="day"><span class="n">02</span>One study day</h2>
 <ol class="steps">
-  <li><b>Abre a app</b> e clica no cartão azul (<i>Estudo de hoje</i>, ou <i>Checkpoint</i>/<i>Revisão semanal</i> nesses dias). O painel <b>Hoje</b> abre com os 4 blocos e o tutor guia-te.</li>
-  <li><b>Liga o cronómetro</b> ▶ no painel.</li>
-  <li><b>Vocabulário</b> (8′): revisão SRS (Anki ou o botão <i>Rever</i>).</li>
-  <li><b>Gramática</b> (22′): clica <i>Abrir</i>, responde dentro da unidade, carrega em <i>Corrigir</i> e depois em <i>Guardar</i>. Se falhares, usa <i>Explicar erros</i>.</li>
-  <li><b>Listening</b> (15′): o <i>Abrir</i> leva-te ao recurso. Ciclo: prever, ouvir, verificar, ler a transcrição, fazer shadowing.</li>
-  <li><b>Output</b> (15′): <i>Praticar</i>. Speaking: falas (🎤) ou escreves para o coach. Escrita: escreves e o examinador corrige.</li>
-  <li><b>Terminar sessão</b>: confirma os números. Fica registado no log, na espinha de gramática e no dashboard.</li>
-  <li><b>Progresso → Guardar no Git</b>: faz o commit e envia para o GitHub.</li>
+  <li><div><strong>Open Today.</strong> You see the plan for the day: 4 blocks and a timer.</div></li>
+  <li><div><strong>Start the timer</strong> (the round button).</div></li>
+  <li><div><strong>Vocabulary (8 min):</strong> review your AnkiWeb cards and add today's new words.</div></li>
+  <li><div><strong>Grammar (22 min):</strong> press <em>Open</em>. Write your answers, press <em>Check</em>, then <em>Save</em>. Wrong answers? Press <em>Explain my mistakes</em>.</div></li>
+  <li><div><strong>Listening (15 min):</strong> press <em>Open</em>. Predict, listen, check, read the transcript, then shadow for 3 minutes.</div></li>
+  <li><div><strong>Output (15 min):</strong> press <em>Practise</em>. Speak (mic) or write. The tutor gives short feedback.</div></li>
+  <li><div><strong>Finish session</strong> and check the form (see below).</div></li>
+  <li><div><strong>Progress → Save to GitHub</strong> to keep your work safe.</div></li>
 </ol>
 
-<h2 id="app">A app, menu a menu</h2>
+<h2 id="finish"><span class="n">03</span>Finish a session: what to write</h2>
+<p>Press <strong>Finish session</strong> at the end of Today. Most fields fill in by themselves. Check them and press <strong>Save session</strong>.</p>
 <div class="tw"><table>
-<tr><th>Menu</th><th>Para quê</th></tr>
-<tr><td>💬 <b>Estudar</b></td><td>Chat estilo ChatGPT. Escolhe <b>Claude</b> ou <b>Codex</b> no topo (cada um mantém a sua conversa). Os cartões e os chips são atalhos. O ➕ começa uma conversa nova. O painel à direita tem 3 separadores: <b>Hoje</b>, <b>Exercício</b> e <b>Documento</b>.</td></tr>
-<tr><td>📘 <b>Gramática</b></td><td>As 45 unidades por cores: verde dominada (≥ 90%), verde-claro feita (70–89%), laranja a repetir, cinza por fazer. As unidades esbatidas ainda não foram criadas: pede-as ao tutor.</td></tr>
-<tr><td>📈 <b>Progresso</b></td><td>Dias até à partida, horas feitas e previstas, sequência de dias, calendário, erros recorrentes, checkpoints e o botão <b>Guardar no Git</b>.</td></tr>
-<tr><td>📖 <b>Recursos</b></td><td>Links verificados, plano mestre, semana atual e fundamentação científica.</td></tr>
-<tr><td>⚙ <b>Definições</b></td><td>O modelo do Codex e do Claude, e os caminhos dos CLIs (deixa vazio para a deteção automática).</td></tr>
+<tr><th>Field</th><th>What to write</th><th>Example</th></tr>
+<tr><td><strong>Minutes</strong></td><td>How long you studied. It comes from the timer. Change it if you studied without the timer.</td><td><code>58</code></td></tr>
+<tr><td><strong>New words</strong></td><td>How many new cards you added to AnkiWeb today.</td><td><code>8</code></td></tr>
+<tr><td><strong>Grammar unit</strong></td><td>The code of the unit you practised today. It is in the Grammar block and at the top of the exercise.</td><td><code>P1-02</code></td></tr>
+<tr><td><strong>Grammar score %</strong></td><td>Your result in the exercise. It fills in after you press <em>Check</em> and then <em>Save</em>. Leave it empty on test days.</td><td><code>86</code></td></tr>
+<tr><td><strong>Listening</strong></td><td>What you listened to: the resource and the lesson or episode.</td><td><code>VOA lesson 2</code></td></tr>
+<tr><td><strong>Output</strong></td><td>Your main practice today. <em>speaking</em> = you talked to the tutor. <em>writing</em> = you wrote a text. <em>review</em> = weekly review day. <em>checkpoint</em> = test day (C0–C3).</td><td><code>speaking</code></td></tr>
+<tr><td><strong>Notes</strong></td><td>Optional. Something difficult or important, in a few words.</td><td><code>-s with he/she</code></td></tr>
 </table></div>
-<div class="note">🎤 <b>Microfone</b>: ditado em inglês americano (Chrome ou Edge; o Firefox não suporta). 🔊 em cada resposta lê o texto em voz alta em inglês americano.</div>
+<div class="note">Why it matters: the plan changes every week with these numbers. A score under 70% repeats the unit; missed days move the work to day 7.</div>
 
-<h2 id="plano">O plano</h2>
-<div class="timeline">
-  <div class="phase"><small>25/11/2026</small><b>C0 · Diagnóstico</b>60 min: gramática, listening, escrita e speaking.</div>
-  <div class="phase"><small>26/11 → 02/01 · 1h/dia</small><b>Fase 1 · Fundação</b>Do present simple ao núcleo do B1 (P1-01 → P1-28). C1 a 02/01.</div>
-  <div class="phase"><small>03/01 → 01/02 · 2–3h/dia</small><b>Fase 2 · Intensivo Erasmus</b>Burocracia, vida académica, inglês de IA e vida social (P2-01 → P2-17). C2 a 16/01 e C3 a 31/01.</div>
-</div>
-<p>Os detalhes estão em <code>plan/master-plan.md</code> e a sequência de gramática em <code>plan/grammar-spine.md</code>. A base científica está em <code>research/2026-11-24-fundamentacao.md</code>: as quatro vertentes de Nation, prática espaçada, shadowing, a técnica 4/3/2 e correção focada. O plano adapta-se todas as semanas com regras explícitas (secção 6 do plano mestre).</p>
-
-<h2 id="skills">As skills</h2>
-<p>Uma <i>skill</i> é uma pasta com um <code>SKILL.md</code>: instruções que o agente carrega quando o teu pedido encaixa na descrição. Estão todas em <code>.agents/skills/</code>, uma pasta única partilhada pelos dois agentes.</p>
+<h2 id="screens"><span class="n">04</span>The screens</h2>
 <div class="tw"><table>
-<tr><th>Skill</th><th>Origem</th><th>Faz</th></tr>
-<tr><td><b>daily-study-planner</b></td><td>criada</td><td>Orquestra o dia: sessão, fecho, revisão semanal, adaptação, preparação da semana e das unidades.</td></tr>
-<tr><td><b>english-examiner</b></td><td>criada</td><td>Checkpoints C0–C3 com materiais oficiais Cambridge, rubricas B1/B2 e correção de textos.</td></tr>
-<tr><td><b>speaking-coach</b></td><td>criada</td><td>Role-plays do Erasmus, técnica 4/3/2, shadowing e pronúncia para lusófonos.</td></tr>
-<tr><td>langtutor-* (5)</td><td>gislio/claude-language-tutor</td><td>Perfil CEFR, mini-aulas, vocabulário SRS, dashboard e materiais.</td></tr>
-<tr><td>tutor, teach-me, recall… (8)</td><td>TakeOff-Team/claude-tutor</td><td>Micro-cursos de um ponto, pesquisa e verificação de fontes, revisões espaçadas.</td></tr>
-<tr><td>literature-review</td><td>pinshuai/literature-review-skill</td><td>Revisão científica, adaptada para estudos de aprendizagem de línguas.</td></tr>
-<tr><td>skill-creator, pdf, docx, xlsx</td><td>anthropics/skills</td><td>Criar e testar skills; trabalhar com documentos.</td></tr>
-</table></div>
-<p>Os agentes escolhem a skill sozinhos pela descrição. Para forçar uma: <code>/nome-da-skill</code> no Claude, <code>$nome-da-skill</code> no Codex. A origem, as licenças e as adaptações estão em <code>vendor/SOURCES.md</code>.</p>
-
-<span class="part">Parte 2 · Técnico</span>
-<h2 id="arquitetura">Arquitetura</h2>
-<p>Não há base de dados nem nuvem: tudo são <b>ficheiros de texto no projeto</b>, versionados no Git. A app é uma camada fina entre o browser, esses ficheiros e os CLIs dos agentes.</p>
-<div class="diagram">
-<svg viewBox="0 0 900 430" role="img" aria-label="Diagrama: o browser fala com o servidor Python, que lê e escreve os ficheiros do projeto e lança os CLIs do Claude e do Codex; estes usam as contas do utilizador e as skills do projeto; o Git sincroniza com o GitHub.">
-  <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
-  <rect x="20" y="40" width="170" height="92" rx="12" class="d-box"/>
-  <text x="105" y="74" text-anchor="middle" class="d-t">Browser</text>
-  <text x="105" y="94" text-anchor="middle" class="d-s">HTML + JS (app/static)</text>
-  <text x="105" y="112" text-anchor="middle" class="d-s">🎤 ditado · 🔊 voz</text>
-  <rect x="300" y="40" width="230" height="92" rx="12" class="d-acc"/>
-  <text x="415" y="72" text-anchor="middle" class="d-t">app/server.py</text>
-  <text x="415" y="92" text-anchor="middle" class="d-s">Python (só biblioteca padrão)</text>
-  <text x="415" y="110" text-anchor="middle" class="d-s">127.0.0.1:8765 · token por sessão</text>
-  <line x1="190" y1="86" x2="296" y2="86" class="d-line" marker-end="url(#ar)" marker-start="url(#ar)"/>
-  <text x="243" y="78" text-anchor="middle" class="d-lbl">HTTP · NDJSON</text>
-  <rect x="640" y="20" width="240" height="70" rx="12" class="d-good"/>
-  <text x="760" y="50" text-anchor="middle" class="d-t">Claude Code CLI</text>
-  <text x="760" y="70" text-anchor="middle" class="d-s">claude -p … stream-json</text>
-  <rect x="640" y="110" width="240" height="70" rx="12" class="d-good"/>
-  <text x="760" y="140" text-anchor="middle" class="d-t">Codex CLI</text>
-  <text x="760" y="160" text-anchor="middle" class="d-s">codex exec --json</text>
-  <path d="M530 70 C585 70 585 55 636 55" class="d-line" marker-end="url(#ar)"/>
-  <path d="M530 102 C585 102 585 145 636 145" class="d-line" marker-end="url(#ar)"/>
-  <text x="585" y="40" text-anchor="middle" class="d-lbl">subprocesso</text>
-  <rect x="640" y="215" width="240" height="64" rx="12" class="d-box"/>
-  <text x="760" y="243" text-anchor="middle" class="d-t">As tuas contas</text>
-  <text x="760" y="262" text-anchor="middle" class="d-s">Claude (Pro/Max) · ChatGPT</text>
-  <line x1="760" y1="180" x2="760" y2="211" class="d-line" marker-end="url(#ar)"/>
-  <rect x="210" y="200" width="400" height="150" rx="12" class="d-box"/>
-  <text x="410" y="228" text-anchor="middle" class="d-t">Ficheiros do projeto (Git)</text>
-  <text x="410" y="252" text-anchor="middle" class="d-s">plan/ · materials/grammar/ · progress/ · assessments/</text>
-  <text x="410" y="272" text-anchor="middle" class="d-s">AGENTS.md (instruções) · .agents/skills/ (21 skills)</text>
-  <text x="410" y="292" text-anchor="middle" class="d-s">Language-Tutor/learner-data/ · writing/ · speaking/</text>
-  <text x="410" y="318" text-anchor="middle" class="d-s">app/state/ (histórico do chat, fora do Git)</text>
-  <line x1="415" y1="132" x2="415" y2="196" class="d-line" marker-end="url(#ar)"/>
-  <text x="460" y="168" class="d-lbl">lê / escreve</text>
-  <path d="M700 280 C700 320 660 300 614 290" class="d-line" marker-end="url(#ar)"/>
-  <text x="672" y="320" class="d-lbl">agentes editam</text>
-  <rect x="20" y="300" width="150" height="56" rx="12" class="d-box"/>
-  <text x="95" y="326" text-anchor="middle" class="d-t">GitHub</text>
-  <text x="95" y="344" text-anchor="middle" class="d-s">sincronização</text>
-  <line x1="206" y1="328" x2="174" y2="328" class="d-line" marker-end="url(#ar)"/>
-  <text x="190" y="318" text-anchor="middle" class="d-lbl">git push</text>
-  <rect x="200" y="8" width="690" height="410" rx="16" class="d-dash"/>
-  <text x="212" y="408" class="d-lbl">Em Docker, tudo o que está dentro do tracejado corre no contentor (o projeto é montado do teu disco)</text>
-</svg>
-</div>
-<div class="tw"><table>
-<tr><th>Peça</th><th>Ficheiro</th><th>Detalhe</th></tr>
-<tr><td>Servidor</td><td><code>app/server.py</code></td><td>Usa o <code>ThreadingHTTPServer</code> do Python, sem dependências. Serve a página e uma API JSON, lança os CLIs e transmite as respostas.</td></tr>
-<tr><td>Interface</td><td><code>app/static/*.js|css</code></td><td>JavaScript simples, sem build. Renderizador de markdown próprio (<code>md.js</code>), funciona offline.</td></tr>
-<tr><td>Leitura dos dados</td><td><code>scripts/build_dashboard.py</code></td><td>Lê as tabelas markdown (espinha, log, erros, semanas). A app reutiliza estas funções.</td></tr>
-<tr><td>Instruções dos agentes</td><td><code>AGENTS.md</code> + <code>CLAUDE.md</code></td><td>O Codex lê o <code>AGENTS.md</code>; o <code>CLAUDE.md</code> importa-o (<code>@AGENTS.md</code>).</td></tr>
-<tr><td>Skills</td><td><code>.agents/skills/</code></td><td>Ficheiros reais aqui. O <code>.claude/skills</code> é um link para esta pasta.</td></tr>
+<tr><th>Place</th><th>What it does</th></tr>
+<tr><td><strong>Study</strong> · centre</td><td>Three tabs: <em>Today</em> (plan and timer), <em>Exercise</em> (the grammar unit, with answer boxes) and <em>Document</em> (files the tutor opens for you).</td></tr>
+<tr><td><strong>Tutor</strong> · right</td><td>The chat. Choose Claude or Codex at the top. They answer only in simple English. The tutor can open material in the centre for you.</td></tr>
+<tr><td><strong>Grammar</strong></td><td>All 45 units. Colours show the status: mastered, done, repeat, to do.</td></tr>
+<tr><td><strong>Progress</strong></td><td>Hours, days in a row, calendar, checkpoints, common mistakes and <em>Save to GitHub</em>.</td></tr>
+<tr><td><strong>Settings</strong> (bottom left)</td><td>Models and paths of the agents, and the light/dark theme button.</td></tr>
 </table></div>
 
-<h2 id="chat">Como funciona o chat</h2>
-<ol class="steps">
-  <li>Escreves uma mensagem. O browser faz <code>POST /api/chat/send</code> com o token da sessão.</li>
-  <li>O servidor lança o CLI em <b>modo não interativo</b>, na pasta do projeto:
-<pre><code><span class="cmt"># Claude (1.ª mensagem; depois acrescenta --resume &lt;sessão&gt;)</span>
-claude -p "mensagem" --output-format stream-json --verbose --include-partial-messages \
-  --permission-mode acceptEdits --allowedTools "Read,Write,Edit,Skill,WebSearch,…" \
-  --append-system-prompt "contexto da app"
-
-<span class="cmt"># Codex (1.ª mensagem; depois: codex exec resume &lt;sessão&gt; …)</span>
-codex exec --json -m gpt-6-sol -s workspace-write "contexto da app + mensagem"</code></pre></li>
-  <li>O CLI emite eventos JSON linha a linha. O servidor converte-os em <code>{"t":"text"|"tool"|"error"|"done"}</code> e envia-os ao browser em <b>streaming</b> (NDJSON). Aparecem o texto e os passos ("Ler plan/…", "Skill: …").</li>
-  <li>O <b>ID da sessão</b> fica em <code>app/state/chats.json</code>, e por isso a conversa continua (<code>--resume</code> / <code>exec resume</code>). O ➕ apaga-o e começa do zero.</li>
-  <li>Se a resposta tiver marcadores como <code>[[abrir:P1-02]]</code>, <code>[[abrir:hoje]]</code>, <code>[[abrir:doc:…]]</code> ou <code>[[abrir:url:…]]</code>, a interface abre esse conteúdo no painel. É assim que <i>"estudo de hoje"</i> abre o material sozinho.</li>
-</ol>
-<details><summary>Correção automática dos exercícios</summary>
-<p>Os gabaritos (<code>materials/grammar/answers/</code>) só são pedidos ao servidor quando carregas em <i>Corrigir</i>. A comparação normaliza as respostas: maiúsculas, pontuação, contrações (<i>don't</i> = <i>do not</i>), alternativas separadas por <code>/</code>, palavras opcionais entre parênteses e respostas parciais com <code>…</code>. Testada com os 99 itens das 5 primeiras unidades. Se uma resposta certa não for reconhecida, <i>está certo</i> corrige a nota. <i>Guardar</i> grava a % na espinha e as respostas em <code>progress/exercises/</code>.</p></details>
-<details><summary>Permissões dos agentes dentro da app</summary>
-<p><b>Claude</b>: <code>acceptEdits</code> permite editar ficheiros do projeto sem perguntar. Os comandos de terminal estão limitados a uma lista (<code>date</code>, <code>ls</code>, <code>cat</code>, <code>git status/log/diff</code>, o dashboard…) e o resto é recusado. <b>Codex</b>: sandbox <code>workspace-write</code> (escreve só no projeto). Em Docker, o próprio contentor faz de sandbox (ver <a href="#docker">Docker</a>).</p></details>
-
-<h2 id="auth">Autenticação: sem API, com as tuas contas</h2>
-<p>Os CLIs oficiais aceitam login com a <b>conta de subscrição</b> (OAuth), e não só com uma chave de API. A app nunca vê nem guarda as tuas credenciais: limita-se a lançar o CLI, e o CLI autentica-se sozinho. O uso conta para os limites da tua subscrição, como se usasses o Claude Code ou o Codex diretamente.</p>
-<div class="tw"><table>
-<tr><th></th><th>Nativo (Linux/Windows)</th><th>Docker</th></tr>
-<tr><td><b>Claude</b></td><td>Usa o login que fizeste na <b>extensão Claude Code do VS Code</b> (o CLI vem com a extensão). Credenciais em <code>~/.claude/.credentials.json</code>. A app encontra o binário em <code>~/.vscode/extensions/anthropic.claude-code-*/resources/native-binary/</code>.</td><td><code>claude auth login</code>: abres um link, autorizas e colas o código. Fica guardado no volume <code>claude-home</code> (<code>CLAUDE_CONFIG_DIR</code>).</td></tr>
-<tr><td><b>Codex</b></td><td>Usa o login da <b>app Codex/ChatGPT</b> (<code>~/.codex/auth.json</code>). No Linux, o CLI vem com a app (<code>/usr/lib/chatgpt/resources/codex</code>).</td><td><code>codex login --device-auth</code>: abres um link, introduzes um código e entras com a conta ChatGPT. Fica no volume <code>codex-home</code>.</td></tr>
-<tr><td><b>GitHub</b></td><td><code>gh auth login</code> (código no browser). O token fica no <i>keyring</i> do sistema. Conta: JuanLeiteDev.</td><td>Igual, guardado no volume <code>gh-config</code>. É opcional: só serve para o push do botão.</td></tr>
-</table></div>
-<div class="note warn">O login em Docker é <b>separado</b> do login nativo. O contentor não vê as credenciais do teu PC, e isso é intencional: assim tudo funciona igual em qualquer sistema e as tuas credenciais nunca saem do seu sítio. Faz-se <b>uma vez por dispositivo</b>: <code>docker compose run --rm app login</code>.</div>
-
-<h2 id="docker">Docker por dentro</h2>
-<p>Um <b>contentor</b> é um Linux mínimo e isolado que corre dentro do teu sistema. No Windows e no macOS, o Docker Desktop executa-o numa pequena máquina virtual Linux (no Windows, via WSL 2). Por isso a app corre <b>exatamente no mesmo ambiente</b> em todos os sistemas.</p>
-<h3>A imagem (<code>docker/Dockerfile</code>)</h3>
-<div class="tw"><table>
-<tr><th>Camada</th><th>Porquê</th></tr>
-<tr><td><code>python:3.12-slim-bookworm</code></td><td>Base Debian com Python; corre o servidor.</td></tr>
-<tr><td>git, curl, tzdata, poppler-utils, ripgrep</td><td>Commits, downloads, fuso horário (o "hoje" do plano), leitura de PDFs e pesquisa rápida nos ficheiros (o Codex usa o <code>rg</code>).</td></tr>
-<tr><td>Codex CLI <code>0.167.2</code></td><td>Binários oficiais das releases do GitHub (versão fixa): <code>codex</code> e <code>codex-code-mode-host</code>. O segundo executa as ferramentas do Codex (shell) e tem de estar ao lado do primeiro: sem ele, o Codex responde mas não consegue correr comandos.</td></tr>
-<tr><td>GitHub CLI <code>2.103.3</code></td><td>Para o push. O download é verificado com o checksum oficial.</td></tr>
-<tr><td><code>requirements.txt</code></td><td>pypdf, python-docx, openpyxl…, para as skills de documentos.</td></tr>
-<tr><td>Utilizador <code>student</code> (UID 1000)</td><td>Não corre como root. No Linux, o UID coincide com o teu (<code>EB_UID</code>/<code>EB_GID</code> no <code>.env</code>; o <code>scripts/setup.sh</code> preenche-os), e os ficheiros criados continuam a ser teus.</td></tr>
-<tr><td>Claude Code CLI (canal <code>stable</code>)</td><td>Instalador nativo oficial.</td></tr>
-</table></div>
-<h3>O serviço (<code>compose.yaml</code>)</h3>
-<pre><code>ports:   "127.0.0.1:8765:8765"            <span class="cmt"># só acessível a partir deste PC</span>
-volumes: .:/workspace                      <span class="cmt"># o projeto, do teu disco (não é copiado)</span>
-         claude-home  codex-home  gh-config  <span class="cmt"># logins persistentes</span>
-restart: unless-stopped                    <span class="cmt"># volta a ligar sozinha</span>
-env:     CODEX_SANDBOX=danger-full-access  <span class="cmt"># a sandbox é o contentor</span></code></pre>
-<h3>O arranque (<code>docker/entrypoint.sh</code>)</h3>
-<div class="tw"><table>
-<tr><th>Comando</th><th>Faz</th></tr>
-<tr><td><code>serve</code> (padrão)</td><td>Descarrega o material oficial se faltar, mostra o estado dos logins e arranca a app.</td></tr>
-<tr><td><code>login</code></td><td>Assistente de 3 passos: Claude, Codex e GitHub.</td></tr>
-<tr><td><code>status</code></td><td>Mostra quem tem sessão iniciada.</td></tr>
-<tr><td><code>shell</code></td><td>Abre um terminal dentro do contentor.</td></tr>
-</table></div>
-<p>Também configura o Git (<code>safe.directory</code>, nome e email do <code>.env</code>) e, se o link <code>.claude/skills</code> não funcionar (clone em Windows), liga as skills ao nível do utilizador do Claude dentro do contentor.</p>
-<details><summary>Porque é que o Codex corre sem a sandbox dele no Docker?</summary>
-<p>A sandbox do Codex em Linux usa funcionalidades do kernel (namespaces, Landlock/seccomp) que um contentor normal não deixa usar. A prática habitual é delegar o isolamento no contentor: o Codex só vê <code>/workspace</code> (o projeto) e as suas próprias credenciais. Não vê o resto do teu disco nem o teu sistema.</p></details>
-
-<h2 id="seguranca">Segurança</h2>
-<div class="tw"><table>
-<tr><th>Risco</th><th>Proteção</th></tr>
-<tr><td>Outros dispositivos na rede</td><td>O servidor escuta só em <code>127.0.0.1</code> (no Docker, a porta só é publicada em <code>127.0.0.1</code>). Testado: não é acessível pelo IP da rede local.</td></tr>
-<tr><td>Um site malicioso a mandar pedidos para localhost</td><td>Os pedidos POST exigem um token aleatório gerado em cada arranque e embutido na página, e o cabeçalho <code>Host</code> tem de ser <code>127.0.0.1</code>/<code>localhost</code>.</td></tr>
-<tr><td>Ler ficheiros fora do projeto</td><td>O visualizador só abre <code>.md</code> de pastas autorizadas: recusa <code>..</code>, os gabaritos e tudo o resto.</td></tr>
-<tr><td>Fugas no repositório público</td><td>Fora do Git: <code>app/state/</code> (chat), <code>.env</code>, <code>.venv/</code> e <code>materials/official/</code> (direitos de autor da Cambridge).</td></tr>
-</table></div>
-<div class="note warn"><b>O repositório é público.</b> Os teus textos (<code>writing/</code>), transcrições (<code>speaking/</code>) e o progresso ficam visíveis. Para o tornar privado: <code>gh repo edit JuanLeiteDev/english-boost --visibility private --accept-visibility-change-consequences</code></div>
-
-<h2 id="ficheiros">Ficheiros e dados</h2>
-<pre><code>english-boost/
-├── app/                  <span class="cmt"># app web: server.py + static/ (state/ fica fora do Git)</span>
-├── docker/  compose.yaml <span class="cmt"># imagem e serviço Docker</span>
-├── estudar.sh  estudar.bat
-├── AGENTS.md  CLAUDE.md  <span class="cmt"># instruções dos agentes</span>
-├── .agents/skills/       <span class="cmt"># 21 skills (.claude/skills → link)</span>
-├── plan/                 <span class="cmt"># master-plan, grammar-spine, weeks/</span>
-├── materials/grammar/    <span class="cmt"># unidades + answers/ · official/ (fora do Git)</span>
-├── assessments/          <span class="cmt"># C0–C3 e resultados</span>
-├── progress/             <span class="cmt"># log.md, error-log.md, exercises/, weekly/</span>
-├── writing/  speaking/   <span class="cmt"># os teus textos e transcrições</span>
-├── Language-Tutor/learner-data/english/  <span class="cmt"># perfil e SRS das skills langtutor</span>
-├── resources/  research/ <span class="cmt"># catálogo de links · fundamentação</span>
-├── scripts/              <span class="cmt"># dashboard, materiais oficiais, setup</span>
-└── vendor/SOURCES.md     <span class="cmt"># origem e licenças das skills</span></code></pre>
-
-<span class="part">Parte 3 · Outro PC</span>
-<h2 id="outro-pc">Instalar noutro PC</h2>
-<div class="tabs" data-group="inst"><button class="on" data-pane="i-docker">🐳 Docker (recomendado)</button><button data-pane="i-linux">🐧 Linux nativo</button><button data-pane="i-win">🪟 Windows nativo</button></div>
-<div class="pane on" id="i-docker">
-<ol class="steps">
-  <li><b>Instala o Docker.</b> Windows/macOS: <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> (no Windows com WSL 2, que o instalador ativa). Linux: Docker Engine e depois <code>sudo usermod -aG docker $USER</code>; termina a sessão e volta a entrar.</li>
-  <li><b>Clona o projeto e constrói a imagem</b> (3–5 min na 1.ª vez):
-<pre><code>git clone https://github.com/JuanLeiteDev/english-boost.git
-cd english-boost
-cp .env.example .env          <span class="cmt"># opcional: TZ, porta, nome/email dos commits</span>
-docker compose build</code></pre></li>
-  <li><b>Faz login uma vez</b> (Claude, Codex e GitHub opcional):
-<pre><code>docker compose run --rm app login</code></pre></li>
-  <li><b>Liga a app</b> e abre <a href="http://127.0.0.1:8765">http://127.0.0.1:8765</a>:
-<pre><code>docker compose up -d</code></pre></li>
-</ol>
-<div class="note good">No Windows usa a PowerShell ou o Terminal: os comandos são os mesmos. O Git for Windows é preciso só para o <code>git clone</code>.</div>
-</div>
-<div class="pane" id="i-linux">
-<ol class="steps">
-  <li><b>Requisitos:</b> Python 3.9+ e Git.</li>
-  <li><b>Agentes</b> (pelo menos um):
-    <br>Claude: extensão <i>Claude Code</i> no VS Code com login feito, ou <code>curl -fsSL https://claude.ai/install.sh | bash</code> e depois <code>claude</code> para entrar.
-    <br>Codex: app Codex/ChatGPT, ou <code>npm i -g @openai/codex</code> e <code>codex login</code>.</li>
-  <li><b>Configura e arranca:</b>
-<pre><code>git clone https://github.com/JuanLeiteDev/english-boost.git && cd english-boost
-bash scripts/setup.sh         <span class="cmt"># link das skills, materiais oficiais, deteção dos agentes</span>
-./estudar.sh</code></pre></li>
-</ol>
-</div>
-<div class="pane" id="i-win">
-<ol class="steps">
-  <li><b>Requisitos:</b> <code>winget install Python.Python.3.12</code> e <code>winget install Git.Git</code>.</li>
-  <li><b>Agentes:</b> Claude: extensão do VS Code com login feito, ou <code>irm https://claude.ai/install.ps1 | iex</code> e depois <code>claude</code>. Codex: <code>npm i -g @openai/codex</code> e <code>codex login</code>.</li>
-  <li><b>Configura e arranca</b> (PowerShell):
-<pre><code>git clone https://github.com/JuanLeiteDev/english-boost.git; cd english-boost
-powershell -ExecutionPolicy Bypass -File scripts\setup-windows.ps1
-.\estudar.bat</code></pre></li>
-</ol>
-<div class="note warn">O Windows nativo foi preparado mas <b>não testado</b> (não havia Windows disponível). Se algo falhar, usa o Docker: é o caminho testado e igual em todo o lado.</div>
-</div>
-
-<h2 id="testes">Testes automáticos</h2>
-<pre><code>python3 -m unittest discover -s tests -t .   <span class="cmt"># ~5 s · agentes simulados, sem rede</span></code></pre>
-<p>Os agentes são substituídos por dois scripts (<code>tests/fake_agents/</code>) que emitem os mesmos eventos JSON do Claude e do Codex. Assim testa-se o chat inteiro (streaming, retoma de sessão, parar, timeout) sem gastar a subscrição. O <b>GitHub Actions</b> corre a bateria em Linux, Windows e macOS, e constrói e testa a imagem Docker em cada push.</p>
-
-<h2 id="problemas">Problemas comuns</h2>
-<details><summary><code>permission denied … docker.sock</code> (Linux)</summary><p>Corre <code>sudo usermod -aG docker $USER</code> e termina a sessão. Até lá, usa o prefixo <code>sg docker -c "docker compose …"</code>.</p></details>
-<details><summary>"Claude/Codex não encontrado" na app</summary><p>Docker: <code>docker compose run --rm app status</code> e, se for preciso, <code>login</code>. Nativo: ⚙ Definições, onde indicas o caminho do executável (no Windows tem de ser um <code>.exe</code>; os atalhos <code>.cmd</code> do npm não servem porque não aceitam mensagens com várias linhas).</p></details>
-<details><summary>O agente responde com erro de login ou sessão expirada</summary><p>Docker: <code>docker compose run --rm app login</code>. Nativo: abre o Claude Code no VS Code ou a app Codex e volta a entrar.</p></details>
-<details><summary>Porta 8765 ocupada</summary><p>Tens a versão nativa e a Docker ligadas ao mesmo tempo. Desliga uma, ou muda a porta: <code>HOST_PORT=8766</code> no <code>.env</code> (Docker) ou <code>./estudar.sh --port 8766</code>.</p></details>
-<details><summary>O Claude não encontra as skills (Windows nativo)</summary><p>O link <code>.claude/skills</code> chegou como ficheiro de texto. Corre <code>scripts\setup-windows.ps1</code>, que cria uma junção sem precisar de administrador.</p></details>
-<details><summary>Atualizar as versões do Claude ou do Codex no Docker</summary><p>Muda <code>CODEX_VERSION</code> / <code>GH_VERSION</code> em <code>docker/Dockerfile</code> e corre <code>docker compose build --no-cache && docker compose up -d</code>. Os logins mantêm-se, porque estão nos volumes.</p></details>
-<details><summary>O Codex diz que "a ferramenta de shell falhou" (Docker)</summary><p>Falta o <code>codex-code-mode-host</code> na imagem. Se alterares a versão do Codex, confirma que a release tem esse ficheiro para a tua arquitetura e reconstrói: <code>docker compose build && docker compose up -d</code>.</p></details>
-<details><summary>O "hoje" da app está errado</summary><p>Fuso horário: <code>TZ=Europe/Lisbon</code> (ou <code>Europe/Brussels</code> quando estiveres na Bélgica) no <code>.env</code>, e depois <code>docker compose up -d</code>.</p></details>
-
-<h2 id="limites">Limites conhecidos</h2>
+<h2 id="mic"><span class="n">05</span>Microphone</h2>
+<p>Press the <strong>mic</strong> in the chat, speak, then press it again to stop. Your words appear in the message box. Check them and send.</p>
 <ul>
-  <li>A IA <b>não ouve a tua pronúncia</b>: trabalha a partir do ditado. As palavras mal reconhecidas servem de pista (p. ex. "tree" quando querias dizer "three").</li>
-  <li>O microfone só funciona no <b>Chrome ou no Edge</b>.</li>
-  <li>A app é para <b>este PC</b> (localhost). Não está pensada para abrir no telemóvel pela rede.</li>
-  <li>As unidades de gramática da semana 2 em diante são criadas pelo <code>daily-study-planner</code> na revisão semanal. Até lá aparecem esbatidas.</li>
-  <li>Windows nativo não testado. O Docker foi construído e testado neste Linux, com login e conversa real com o Claude e com o Codex dentro do contentor.</li>
+  <li><strong>Docker app (best):</strong> the recording is transcribed on your computer with <em>Whisper</em>. It works in every browser (Chrome, Edge, Firefox), it is private and it works offline. The first start downloads the model once (about 150 MB).</li>
+  <li><strong>Without Docker:</strong> the app uses Chrome or Edge dictation (it needs Google's servers). If it fails, use the Docker app.</li>
+  <li>The browser asks for permission the first time: press <em>Allow</em>.</li>
 </ul>
 
-<footer>English Boost · guia gerado a 2026-11-24 · <a href="https://github.com/JuanLeiteDev/english-boost">github.com/JuanLeiteDev/english-boost</a></footer>
+<h2 id="plan"><span class="n">06</span>The plan</h2>
+<div class="tw"><table>
+<tr><th>When</th><th>What</th></tr>
+<tr><td>25 Nov</td><td><strong>C0 diagnostic</strong>: grammar, listening, writing, speaking (60 min).</td></tr>
+<tr><td>26 Nov – 2 Jan</td><td><strong>Phase 1 · Foundation</strong>, 1 h a day: from the present simple to core B1 (P1-01 → P1-28). C1 on 2 Jan.</td></tr>
+<tr><td>3 Jan – 1 Feb</td><td><strong>Phase 2 · Erasmus intensive</strong>, 2–3 h a day: city hall, campus life, AI English, social life (P2-01 → P2-17). C2 on 16 Jan, C3 on 31 Jan.</td></tr>
+</table></div>
+<p>Each unit has the same 5 steps: <strong>Look</strong> (examples) → <strong>Rule</strong> (one table) → <strong>Watch out</strong> (common mistakes) → <strong>Practice</strong> (with answers) → <strong>Say it</strong> (pronunciation).</p>
+
+<h2 id="how"><span class="n">07</span>How it works</h2>
+<p>There is no database and no cloud: everything is <strong>text files in the project</strong>, saved with Git. The app connects the browser, these files and the agents.</p>
+<div class="diagram">
+<svg viewBox="0 0 900 360" role="img" aria-label="Browser to Python server; server reads and writes project files and starts the Claude and Codex command-line tools, which use your accounts; Git syncs with GitHub.">
+  <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--subtle)"/></marker></defs>
+  <rect x="20" y="40" width="170" height="86" rx="6" class="d-box"/><text x="105" y="74" text-anchor="middle" class="d-t">Browser</text><text x="105" y="96" text-anchor="middle" class="d-s">app/static</text>
+  <rect x="300" y="40" width="230" height="86" rx="6" class="d-acc"/><text x="415" y="72" text-anchor="middle" class="d-t">app/server.py</text><text x="415" y="94" text-anchor="middle" class="d-s">Python · 127.0.0.1:8765</text>
+  <line x1="190" y1="83" x2="296" y2="83" class="d-line" marker-end="url(#ar)" marker-start="url(#ar)"/><text x="243" y="74" text-anchor="middle" class="d-lbl">HTTP</text>
+  <rect x="640" y="20" width="240" height="62" rx="6" class="d-box"/><text x="760" y="48" text-anchor="middle" class="d-t">Claude Code CLI</text><text x="760" y="68" text-anchor="middle" class="d-s">claude -p</text>
+  <rect x="640" y="100" width="240" height="62" rx="6" class="d-box"/><text x="760" y="128" text-anchor="middle" class="d-t">Codex CLI</text><text x="760" y="148" text-anchor="middle" class="d-s">codex exec</text>
+  <path d="M530 68 C585 68 585 51 636 51" class="d-line" marker-end="url(#ar)"/><path d="M530 98 C585 98 585 131 636 131" class="d-line" marker-end="url(#ar)"/>
+  <rect x="640" y="200" width="240" height="56" rx="6" class="d-box"/><text x="760" y="226" text-anchor="middle" class="d-t">Your accounts</text><text x="760" y="244" text-anchor="middle" class="d-s">Claude · ChatGPT</text>
+  <line x1="760" y1="162" x2="760" y2="196" class="d-line" marker-end="url(#ar)"/>
+  <rect x="210" y="190" width="380" height="120" rx="6" class="d-box"/><text x="400" y="218" text-anchor="middle" class="d-t">Project files (Git)</text>
+  <text x="400" y="242" text-anchor="middle" class="d-s">plan/ · materials/ · progress/ · assessments/</text><text x="400" y="262" text-anchor="middle" class="d-s">AGENTS.md · .agents/skills/ (21 skills)</text>
+  <line x1="415" y1="126" x2="415" y2="186" class="d-line" marker-end="url(#ar)"/>
+  <rect x="20" y="230" width="150" height="54" rx="6" class="d-box"/><text x="95" y="262" text-anchor="middle" class="d-t">GitHub</text>
+  <line x1="206" y1="257" x2="174" y2="257" class="d-line" marker-end="url(#ar)"/>
+  <rect x="200" y="8" width="690" height="340" rx="14" class="d-dash"/><text x="212" y="338" class="d-lbl">In Docker, everything inside the dashed line runs in the container</text>
+</svg>
+</div>
+<ul>
+  <li><strong>Chat:</strong> the server starts the agent's command-line tool in the project folder and streams its answer to the browser. Each agent keeps its own conversation (<code>--resume</code>).</li>
+  <li><strong>Opening material:</strong> when an answer contains <code>[[open:P1-02]]</code>, <code>[[open:today]]</code> or <code>[[open:doc:…]]</code>, the app opens it in the centre.</li>
+  <li><strong>Exercises:</strong> answer keys are read only when you press <em>Check</em>. Contractions and small differences count as right; <em>it is right</em> fixes a wrong mark.</li>
+  <li><strong>Agents:</strong> both read <code>AGENTS.md</code> and the skills in <code>.agents/skills/</code>. A rule there makes them use only simple English.</li>
+  <li><strong>Tests:</strong> <code>python3 -m unittest discover -s tests -t .</code>. GitHub Actions runs them on Linux, Windows and macOS for every push.</li>
+</ul>
+
+<h2 id="auth"><span class="n">08</span>Accounts (no API keys)</h2>
+<p>The official tools can sign in with your <strong>subscription</strong>, not only with an API key. The app never sees your passwords: it only starts the tools.</p>
+<div class="tw"><table>
+<tr><th></th><th>Without Docker</th><th>With Docker</th></tr>
+<tr><td><strong>Claude</strong></td><td>Uses the login of the Claude Code extension in VS Code.</td><td><code>claude auth login</code>, saved in the <code>claude-home</code> volume.</td></tr>
+<tr><td><strong>Codex</strong></td><td>Uses the login of the Codex / ChatGPT app.</td><td><code>codex login --device-auth</code>, saved in <code>codex-home</code>.</td></tr>
+<tr><td><strong>GitHub</strong></td><td><code>gh auth login</code> (optional, for the push).</td><td>Same, saved in <code>gh-config</code>.</td></tr>
+</table></div>
+<div class="note">The Docker login is separate from the normal login. You do it <strong>once per computer</strong>: <code>docker compose run --rm app login</code>.</div>
+
+<h2 id="docker"><span class="n">09</span>Docker</h2>
+<p>A container is a small, separate Linux that runs inside your system. On Windows and macOS, Docker Desktop runs it in a small virtual machine. So the app works the same everywhere.</p>
+<div class="tw"><table>
+<tr><th>In the image</th><th>Why</th></tr>
+<tr><td>Python 3.12, Git, ripgrep, tzdata</td><td>The server, commits, fast search, the right "today".</td></tr>
+<tr><td>Codex CLI + <code>codex-code-mode-host</code></td><td>The Codex agent and its shell tool.</td></tr>
+<tr><td>Claude Code CLI</td><td>The Claude agent.</td></tr>
+<tr><td>GitHub CLI</td><td>Push with <em>Save to GitHub</em>.</td></tr>
+<tr><td>faster-whisper</td><td>Local speech-to-text for the mic.</td></tr>
+</table></div>
+<pre><code>ports:   127.0.0.1:8765        <span class="cmt"># only this computer can open the app</span>
+volumes: .:/workspace          <span class="cmt"># your project files stay on your disk</span>
+         claude-home  codex-home  gh-config  stt-models</code></pre>
+
+<h2 id="safety"><span class="n">10</span>Security</h2>
+<ul>
+  <li>The app listens only on <code>127.0.0.1</code>; other devices on your network cannot open it.</li>
+  <li>Every action needs a secret token that changes on each start, and the <code>Host</code> header must be local.</li>
+  <li>Answer keys and files outside the project cannot be opened from the page.</li>
+  <li>Not saved in Git: chat history (<code>app/state/</code>), <code>.env</code>, and the Cambridge papers (copyright).</li>
+  <li><strong>The repository is public.</strong> Your texts and progress are visible. To make it private: <code>gh repo edit JuanLeiteDev/english-boost --visibility private --accept-visibility-change-consequences</code></li>
+</ul>
+
+<h2 id="install"><span class="n">11</span>Install on another computer</h2>
+<div class="tabs" data-group="inst"><button class="on" data-pane="i1">Docker (recommended)</button><button data-pane="i2">Linux</button><button data-pane="i3">Windows</button></div>
+<div class="pane on" id="i1">
+<ol class="steps">
+  <li><div><strong>Install Docker.</strong> Windows/macOS: Docker Desktop. Linux: Docker Engine, then <code>sudo usermod -aG docker $USER</code> and log in again.</div></li>
+  <li><div><strong>Get the project and build</strong> (3–5 min the first time):
+<pre><code>git clone https://github.com/JuanLeiteDev/english-boost.git
+cd english-boost
+docker compose build</code></pre></div></li>
+  <li><div><strong>Log in once</strong> (Claude, Codex, GitHub):
+<pre><code>docker compose run --rm app login</code></pre></div></li>
+  <li><div><strong>Start</strong> and open http://127.0.0.1:8765:
+<pre><code>docker compose up -d</code></pre></div></li>
+</ol>
+</div>
+<div class="pane" id="i2">
+<pre><code>git clone https://github.com/JuanLeiteDev/english-boost.git && cd english-boost
+bash scripts/setup.sh      <span class="cmt"># skills link, materials, finds the agents</span>
+./estudar.sh</code></pre>
+<p>You need Python 3.9+, Git, and Claude Code (VS Code extension) and/or Codex (app or <code>npm i -g @openai/codex</code>).</p>
+</div>
+<div class="pane" id="i3">
+<pre><code>git clone https://github.com/JuanLeiteDev/english-boost.git; cd english-boost
+powershell -ExecutionPolicy Bypass -File scripts\setup-windows.ps1
+.\estudar.bat</code></pre>
+<p>You need Python (<code>winget install Python.Python.3.12</code>), Git, and Claude Code and/or Codex. Docker is easier and the same everywhere.</p>
+</div>
+
+<h2 id="help"><span class="n">12</span>Problems</h2>
+<details><summary>The mic does nothing or shows an error</summary><p>Allow the microphone in the browser (lock icon in the address bar). Without Docker, use Chrome or Edge. In Docker, the first transcription can take a minute while the model loads.</p></details>
+<details><summary>"Claude/Codex not found"</summary><p>Docker: <code>docker compose run --rm app status</code>, then <code>login</code> if needed. Without Docker: Settings, then enter the path of the program.</p></details>
+<details><summary>The agent says the login expired</summary><p>Docker: <code>docker compose run --rm app login</code>. Without Docker: open Claude Code or the Codex app and log in again.</p></details>
+<details><summary>Port 8765 is busy</summary><p>The normal app and Docker are both running. Stop one, or use <code>HOST_PORT=8766</code> in <code>.env</code>.</p></details>
+<details><summary>"Permission denied … docker.sock" (Linux)</summary><p><code>sudo usermod -aG docker $USER</code>, then log out and in again.</p></details>
+<details><summary>"Today" shows the wrong day</summary><p>Set <code>TZ=Europe/Brussels</code> (or <code>Europe/Lisbon</code>) in <code>.env</code> and run <code>docker compose up -d</code>.</p></details>
+
+<footer>English Boost · <a href="https://github.com/JuanLeiteDev/english-boost">github.com/JuanLeiteDev/english-boost</a></footer>
 </main>
 </div>
-<button class="theme" id="theme" title="Mudar tema">◐</button>
+<button class="theme" id="theme" title="Theme">◐</button>
 <script>
-// tabs
 document.querySelectorAll(".tabs").forEach((t) => t.addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
-  t.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
-  t.querySelectorAll("button").forEach((x) => document.getElementById(x.dataset.pane).classList.toggle("on", x === b));
+  t.querySelectorAll("button").forEach((x) => { x.classList.toggle("on", x === b); document.getElementById(x.dataset.pane).classList.toggle("on", x === b); });
 }));
-// copy buttons
 document.querySelectorAll("pre").forEach((pre) => {
-  const b = document.createElement("button"); b.className = "copy"; b.textContent = "copiar";
+  const b = document.createElement("button"); b.className = "copy"; b.textContent = "copy";
   b.onclick = () => {
     const text = [...pre.querySelector("code").childNodes].filter((n) => !(n.classList && n.classList.contains("cmt"))).map((n) => n.textContent).join("").replace(/[ \t]+$/gm, "");
-    navigator.clipboard?.writeText(text).then(() => { b.textContent = "copiado ✓"; setTimeout(() => (b.textContent = "copiar"), 1400); });
+    navigator.clipboard?.writeText(text).then(() => { b.textContent = "copied"; setTimeout(() => (b.textContent = "copy"), 1400); });
   };
   pre.appendChild(b);
 });
-// theme toggle (remembered per browser)
 const root = document.documentElement;
-try { const t = localStorage.getItem("eb-guide-theme"); if (t) root.dataset.theme = t; } catch {}
+try { const t = JSON.parse(localStorage.getItem("theme")); if (t) root.dataset.theme = t; } catch {}
 document.getElementById("theme").onclick = () => {
   const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
   root.dataset.theme = dark ? "light" : "dark";
-  try { localStorage.setItem("eb-guide-theme", root.dataset.theme); } catch {}
+  try { localStorage.setItem("theme", JSON.stringify(root.dataset.theme)); } catch {}
 };
 </script>
 </body>

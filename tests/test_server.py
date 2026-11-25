@@ -172,7 +172,7 @@ class TestChat(ServerTestCase):
         self.assertIn("Echo: -x olá", text)
         self.assertEqual(text.count("Echo:"), 1, "assistant text duplicated after deltas")
         self.assertIn("[[abrir:P1-01]]", text)
-        self.assertIn("Ler plan/master-plan.md", kinds(ev, "tool"))
+        self.assertIn("Read plan/master-plan.md", kinds(ev, "tool"))
         self.assertFalse(kinds(ev, "error"))
         call = self.srv.calls()[-1]
         self.assertEqual(call["stdin"], "-x olá: começa por hífen")  # via stdin, not argv
@@ -213,7 +213,7 @@ class TestChat(ServerTestCase):
         self.reset("codex")
         ev = self.srv.chat("codex", "primeira")
         self.assertIn("Codex: primeira", text_of(ev))
-        self.assertIn("Comando: /bin/bash -lc 'ls plan'", kinds(ev, "tool"))
+        self.assertIn("Command: /bin/bash -lc 'ls plan'", kinds(ev, "tool"))
         self.assertFalse(kinds(ev, "error"), "harmless item errors must not reach the user")
         c1 = self.srv.calls()[-1]
         self.assertEqual(c1["argv"][:1], ["exec"])
@@ -254,7 +254,7 @@ class TestChat(ServerTestCase):
             ev = self.srv.chat(agent, "olá de novo")
             self.assertTrue(text_of(ev), (agent, ev))
             self.assertFalse(kinds(ev, "error"), (agent, ev))
-            self.assertTrue(any("nova" in t for t in kinds(ev, "tool")), ev)
+            self.assertTrue(any("new one" in t for t in kinds(ev, "tool")), ev)
             self.assertNotEqual(ev[-1]["session"], "missing-session")
 
     def test_other_environment_session_not_resumed(self):
@@ -262,7 +262,7 @@ class TestChat(ServerTestCase):
         self._set_session("claude", "sess-from-elsewhere", env="docker-or-other-pc")
         ev = self.srv.chat("claude", "mudei de ambiente")
         self.assertNotIn("--resume", self.srv.calls()[-1]["argv"])
-        self.assertTrue(any("ambiente" in t for t in kinds(ev, "tool")))
+        self.assertTrue(any("environment" in t for t in kinds(ev, "tool")))
 
     def test_busy_stop_and_reset(self):
         self.reset("claude")
@@ -282,7 +282,7 @@ class TestChat(ServerTestCase):
         self.assertFalse(th.is_alive())
         self.assertLess(time.time() - t, 12)
         self.assertEqual(box["ev"][-1]["t"], "done")
-        self.assertIn("Parado.", kinds(box["ev"], "tool"))
+        self.assertIn("Stopped.", kinds(box["ev"], "tool"))
         # the reset wins: the stopped turn is not written back into the history
         self.assertEqual(self.srv.get_json("/api/chat/history?agent=claude")["messages"], [])
         # and the agent is free again
@@ -296,7 +296,7 @@ class TestTimeout(ServerTestCase):
         t = time.time()
         ev = self.srv.chat("codex", "SLEEP forever", timeout=30)
         self.assertLess(time.time() - t, 15)
-        self.assertTrue(any("tempo limite" in e for e in kinds(ev, "error")), ev)
+        self.assertTrue(any("time limit" in e for e in kinds(ev, "error")), ev)
         self.assertFalse(self.srv.get_json("/api/chat/history?agent=codex")["running"])
 
 
@@ -336,10 +336,10 @@ class TestGitSave(ServerTestCase):
         (self.root / "writing" / "x.md").write_text("hello", encoding="utf-8")
         st, r = self.srv.post("/api/git/save", {})
         self.assertTrue(r["ok"], r)
-        self.assertIn("Commit feito", r["msg"])
-        self.assertIn("Sem repositório remoto", r["msg"])
+        self.assertIn("Committed", r["msg"])
+        self.assertIn("No remote", r["msg"])
         st, r = self.srv.post("/api/git/save", {})
-        self.assertIn("Nada de novo", r["msg"])
+        self.assertIn("Nothing new", r["msg"])
         # with a remote and no upstream: push -u
         bare = self.root.parent / (self.root.name + "-remote.git")
         self.git("init", "-q", "--bare", str(bare), cwd=self.root.parent)
@@ -347,9 +347,9 @@ class TestGitSave(ServerTestCase):
         (self.root / "writing" / "y.md").write_text("again", encoding="utf-8")
         st, r = self.srv.post("/api/git/save", {})
         self.assertTrue(r["ok"], r)
-        self.assertIn("Enviado", r["msg"])
+        self.assertIn("Pushed", r["msg"])
         st, r = self.srv.post("/api/git/save", {})
-        self.assertIn("já está atualizado", r["msg"])
+        self.assertIn("already up to date", r["msg"])
         shutil.rmtree(bare, ignore_errors=True)
 
 
@@ -378,12 +378,39 @@ class TestReadOnlyProject(unittest.TestCase):
             shutil.rmtree(home, ignore_errors=True)
 
 
+class TestSpeechToText(ServerTestCase):
+    env = {"EB_STT_FAKE": "hello there"}
+
+    def test_transcribe_audio(self):
+        self.assertTrue(self.srv.get_json("/api/state")["stt"])
+        st, raw = self.srv.request("POST", "/api/transcribe", body=b"\x1aE\xdf\xa3" + b"0" * 2000,
+                                   headers={"X-Token": self.srv.token, "Content-Type": "audio/webm"})
+        self.assertEqual(st, 200, raw)
+        self.assertEqual(json.loads(raw)["text"], "hello there")
+
+    def test_transcribe_needs_token_and_audio(self):
+        st, _ = self.srv.request("POST", "/api/transcribe", body=b"abc", headers={"Content-Type": "audio/webm"})
+        self.assertEqual(st, 403)
+        st, _ = self.srv.request("POST", "/api/transcribe", body=b"", headers={"X-Token": self.srv.token})
+        self.assertEqual(st, 400)
+
+
+class TestSpeechToTextMissing(ServerTestCase):
+    def test_clear_error_when_whisper_is_missing(self):
+        if self.srv.get_json("/api/state")["stt"]:
+            self.skipTest("faster-whisper is installed here")
+        st, raw = self.srv.request("POST", "/api/transcribe", body=b"0" * 2000,
+                                   headers={"X-Token": self.srv.token, "Content-Type": "audio/webm"})
+        self.assertEqual(st, 501)
+        self.assertIn("speech-to-text", json.loads(raw)["error"])
+
+
 class TestPortInUse(ServerTestCase):
     def test_second_instance_fails_cleanly(self):
         p = subprocess.run([sys.executable, str(self.root / "app" / "server.py"), "--port", str(self.srv.port), "--no-browser"],
                            capture_output=True, text=True, timeout=20, encoding="utf-8", errors="replace")
         self.assertEqual(p.returncode, 2, p.stderr)
-        self.assertIn("ocupada", p.stderr)
+        self.assertIn("already in use", p.stderr)
         self.assertNotIn("Traceback", p.stderr)
 
 

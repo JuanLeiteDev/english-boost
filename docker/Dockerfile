@@ -38,12 +38,18 @@ RUN set -eux; \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
+# Local speech-to-text for the microphone button (Whisper, CPU). The model itself is downloaded
+# on first start into the stt-models volume (STT_PRELOAD) and then works offline.
+# av is pinned: faster-whisper 1.1.1 calls av.open(..., metadata_errors=...), removed in av 14+.
+ARG FASTER_WHISPER_VERSION=1.1.1
+RUN pip install --no-cache-dir "faster-whisper==${FASTER_WHISPER_VERSION}" "av==13.1.0"
+
 COPY docker/entrypoint.sh /usr/local/bin/eb-entrypoint
 RUN sed -i 's/\r$//' /usr/local/bin/eb-entrypoint && chmod 0755 /usr/local/bin/eb-entrypoint
 
 # Non-root user (UID/GID match the host on Linux so files in the project stay yours)
 RUN groupadd -g "${GID}" student && useradd -m -u "${UID}" -g "${GID}" -s /bin/bash student \
- && mkdir -p /home/student/.claude /home/student/.codex /home/student/.config/gh \
+ && mkdir -p /home/student/.claude /home/student/.codex /home/student/.config/gh /home/student/.cache/whisper \
  && chown -R student:student /home/student
 USER student
 
@@ -54,6 +60,8 @@ ENV PATH=/home/student/.local/bin:$PATH \
     CLAUDE_CONFIG_DIR=/home/student/.claude \
     CODEX_HOME=/home/student/.codex \
     CODEX_SANDBOX=danger-full-access \
+    STT_PRELOAD=1 \
+    STT_MODELS_DIR=/home/student/.cache/whisper \
     PYTHONUNBUFFERED=1
 WORKDIR /workspace
 EXPOSE 8765

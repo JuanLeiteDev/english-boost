@@ -47,4 +47,5 @@ Volta sempre a aplicar as adaptações da tabela (ex.: `literature-review`) depo
 
 ## Fonte da interface
 
-- **Inter** (variável, subconjunto latino), em `app/static/fonts/`: © The Inter Project Authors, SIL Open Font License 1.1 (`LICENSE-Inter.txt`). Origem: `@fontsource-variable/inter@5.1.0`.
+- **Schibsted Grotesk** e **JetBrains Mono** (variáveis, subconjunto latino), as mesmas fontes de juanleitedev.com, em `app/static/fonts/`, ambas com SIL Open Font License 1.1 (`LICENSE-SchibstedGrotesk.txt`, `LICENSE-JetBrainsMono.txt`). Origem: `@fontsource-variable/*@5.1.0`.
+- **Speech-to-text:** `faster-whisper` 1.1.1 (MIT) com o modelo `Systran/faster-whisper-base.en` (MIT), só na imagem Docker; `av` fixado em 13.1.0 por compatibilidade.

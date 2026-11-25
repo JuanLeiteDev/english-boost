@@ -1,8 +1,8 @@
-# C0: Gabarito e guia de correção (NÃO ABRIR antes de responder)
+# C0 · Answer key and marking guide (do not open before answering)
 
-Este ficheiro é para o `english-examiner`. Aceitar variantes corretas (ex.: contrações e formas completas).
+For the `english-examiner`. Accept correct variants (contractions and full forms).
 
-| # | Resposta | Ponto da espinha | CEFR |
+| # | Answer | Spine unit | CEFR |
 |---|---|---|---|
 | 1 | is | P1-01 | A1 |
 | 2 | Are | P1-01 | A1 |
@@ -35,19 +35,19 @@ Este ficheiro é para o `english-examiner`. Aceitar variantes corretas (ex.: con
 | 29 | waiting | P2-01 | B1 |
 | 30 | was trained | P2-04 | B1 |
 | 31 | had | P2-06 | B1 |
-| 32 | was / was feeling (also accept "is" only if tiredness is still true, but note it) | P2-10 | B1 |
+| 32 | was / was feeling ("is" is OK if she is still tired) | P2-10 | B1 |
 | 33 | have forgotten | P2-09 | B2 |
 | 34 | waking | P2-03 | B2 |
 | 35 | which | P2-12 | B1–B2 |
 
-**Interpretação indicativa (só a gramática):**
-- **Itens 1–13 (A1):** < 11/13 indica buracos de base. Fazer P1-01 – P1-11 com calma e repetir as falhadas.
-- **Itens 14–24 (A2):** < 8/11 indica que o núcleo A2 não está consolidado (esperado).
-- **Itens 25–31 (B1):** ≥ 5/7 indica que algumas unidades P1 podem ser aceleradas (fazer só os exercícios e passar se ≥ 90%).
-- **Itens 32–35 (B2):** são só sinal; não contam para o nível.
+**How to read the grammar score**
+- **Items 1–13 (A1):** under 11/13 means gaps in the basics. Do P1-01 to P1-11 slowly.
+- **Items 14–24 (A2):** under 8/11 means the A2 core is not solid yet (expected).
+- **Items 25–31 (B1):** 5/7 or more means some P1 units can go faster (do only the practice; move on at 90%).
+- **Items 32–35 (B2):** a signal only. They don't count for the level.
 
-**Listening:** usar os gabaritos oficiais em `materials/official/.../answer key.pdf`.
-- A2 Part 1: 4–5/5 → A2 seguro.
-- B1 Part 1: ≥ 5/7 → B1 no listening.
+**Listening:** use the official keys in `materials/official/.../answer key.pdf`. A2 Part 1: 4–5/5 means a safe A2. B1 Part 1: 5/7 or more means B1 listening.
 
-**Escrita e speaking:** usar as rubricas do `english-examiner` (`.agents/skills/english-examiner/references/rubrics.md`).
+**Writing and speaking:** use the rubrics in `.agents/skills/english-examiner/references/rubrics.md`.
+
+**Result file:** short and in simple English. Show the level per skill, 3 strengths and 5 priorities. Nothing else.

@@ -37,7 +37,7 @@ Cada link foi testado (HTTP 200) na data indicada. Para adicionar recursos novos
 | `materials/official/b1-preliminary/…vocabulary-list.pdf` | Lista oficial B1 da Cambridge |
 | [New General Service List (NGSL / NAWL)](https://www.newgeneralservicelist.com/new-general-service-list) | Alta frequência e vocabulário académico |
 | [Pearson Academic Collocation List](https://www.pearsonpte.com/teachers/academic-collocation) | Colocações académicas (Fase 2) |
-| [Anki](https://apps.ankiweb.net) · [decks partilhados](https://www.ankiweb.net/shared/decks) | SRS no telemóvel e no computador |
+| [AnkiWeb](https://ankiweb.net/) · [Anki para computador](https://apps.ankiweb.net/) | AnkiWeb gratuito no Safari para cartões simples; programa gratuito no computador para funções completas |
 | [Cambridge Dictionary](https://dictionary.cambridge.org) | Dicionário para aprendentes, com pronúncia US e UK |
 | 🇺🇸 [YouGlish](https://www.youglish.com) | Ouvir qualquer palavra em vídeos reais (filtrar US) |
 

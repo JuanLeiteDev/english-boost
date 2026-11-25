@@ -32,15 +32,15 @@ if gh auth status >/dev/null 2>&1; then
   fi
 fi
 if [ ! -w /workspace/progress ]; then
-  echo "⚠ Sem permissão de escrita no projeto (UID $(id -u)). No Linux, põe EB_UID/EB_GID no .env (id -u ; id -g) e corre: docker compose build" >&2
+  echo "Warning: the project folder is not writable (UID $(id -u)). On Linux, set EB_UID/EB_GID in .env (id -u ; id -g) and run: docker compose build" >&2
 fi
 
 claude_ok() { claude auth status 2>/dev/null | grep -q '"loggedIn": *true'; }
 codex_ok()  { codex login status 2>&1 | grep -qi 'logged in using'; }
 status() {
-  printf "Claude: "; claude_ok && echo "✓ com sessão iniciada" || echo "✗ sem sessão (corre: docker compose run --rm app login)"
-  printf "Codex:  "; codex_ok && echo "✓ com sessão iniciada" || echo "✗ sem sessão"
-  printf "GitHub: "; gh auth status >/dev/null 2>&1 && echo "✓ com sessão iniciada" || echo "– sem sessão (opcional, só para o push)"
+  printf "Claude: "; claude_ok && echo "signed in" || echo "not signed in (run: docker compose run --rm app login)"
+  printf "Codex:  "; codex_ok && echo "signed in" || echo "not signed in"
+  printf "GitHub: "; gh auth status >/dev/null 2>&1 && echo "signed in" || echo "not signed in (optional, only for push)"
 }
 
 case "${1:-serve}" in
@@ -53,13 +53,13 @@ case "${1:-serve}" in
     exec python3 app/server.py --host 0.0.0.0 --port 8765 --no-browser
     ;;
   login)
-    echo "== 1/3 Claude: abre o link que aparece, autoriza e cola o código aqui =="
-    claude_ok && echo "✓ já tens sessão" || claude auth login
-    echo; echo "== 2/3 Codex: abre o link, introduz o código e entra com a conta ChatGPT =="
-    codex_ok && echo "✓ já tens sessão" || codex login --device-auth
-    echo; echo "== 3/3 GitHub (opcional, para o botão 'Guardar no Git' fazer push) =="
-    if gh auth status >/dev/null 2>&1; then echo "✓ já tens sessão"
-    else read -r -p "Entrar no GitHub agora? [s/N] " r; [[ "$r" =~ ^[sSyY] ]] && gh auth login --hostname github.com --git-protocol https --web --skip-ssh-key && gh auth setup-git || true; fi
+    echo "== 1/3 Claude: open the link, allow access and paste the code here =="
+    claude_ok && echo "already signed in" || claude auth login
+    echo; echo "== 2/3 Codex: open the link, enter the code and sign in with your ChatGPT account =="
+    codex_ok && echo "already signed in" || codex login --device-auth
+    echo; echo "== 3/3 GitHub (optional, so 'Save to GitHub' can push) =="
+    if gh auth status >/dev/null 2>&1; then echo "already signed in"
+    else read -r -p "Sign in to GitHub now? [y/N] " r; [[ "$r" =~ ^[yYsS] ]] && gh auth login --hostname github.com --git-protocol https --web --skip-ssh-key && gh auth setup-git || true; fi
     echo; status
     ;;
   status) status ;;

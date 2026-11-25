@@ -21,6 +21,6 @@
 3. **Words:** 6 high-frequency words with the sound.
 4. **Phrase:** 3 Erasmus phrases.
 5. **Transfer:** use the phrase in a 1-minute mini role-play.
-6. **Log:** record the issue and progress in `progress/error-log.md` (category: pronúncia).
+6. **Log:** record the issue and progress in `progress/error-log.md` (category: pronunciation).
 
 **Dictation test:** the learner says a minimal-pair word into system dictation. If the transcript shows the intended word 4 times out of 5, mark it as intelligible. This is cheap, imperfect, but objective feedback.

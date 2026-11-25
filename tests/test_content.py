@@ -33,10 +33,10 @@ def exercise_items(uid):
     scored, production, in_ex, in_prod = set(), set(), False, False
     for line in (GRAMMAR / f"{uid}.md").read_text(encoding="utf-8").splitlines():
         if line.startswith("## "):
-            in_ex = "Exerc" in line
+            in_ex = "Practice" in line or "Exerc" in line
             in_prod = False
         elif line.startswith("### ") and in_ex:
-            in_prod = "Produ" in line
+            in_prod = "Your turn" in line or "Produ" in line
         elif in_ex:
             m = re.match(r"^(\d+)\.\s+", line)
             if m:
@@ -55,8 +55,10 @@ class TestGrammarUnits(unittest.TestCase):
         for uid in unit_ids():
             text = (GRAMMAR / f"{uid}.md").read_text(encoding="utf-8")
             self.assertTrue(text.startswith(f"# {uid} "), uid)
-            for section in ("## 1.", "## 2.", "## 4. Exerc", "## 5.", "## 6."):
-                self.assertIn(section, text, f"{uid}: falta {section}")
+            for section in ("## 1. Look", "## 2. Rule", "## 3. Watch out", "## 4. Practice", "### Your turn", "## 5. Say it"):
+                self.assertIn(section, text, f"{uid}: missing {section}")
+            self.assertLess(len(text), 4500, f"{uid}: too long, keep units short")
+            self.assertNotRegex(text, r"[ãõçâê]", f"{uid}: units must be in English")
 
     def test_scored_items_match_the_key(self):
         for uid in unit_ids():

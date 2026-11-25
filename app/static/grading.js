@@ -9,7 +9,7 @@
   }
   function variants(exp) {
     const e = String(exp).split(/\s+←/)[0];
-    const keepOpt = e.replace(/\(([^)]*)\)/g, (_, c) => (/[^\x00-\x7f]|aceit|sujeito|objeto|tempo|accept/i.test(c) ? "" : c));
+    const keepOpt = e.replace(/\(([^)]*)\)/g, (_, c) => (/[^\x00-\x7f]|aceit|sujeito|objeto|tempo|accept|subject|object|question|note|meaning/i.test(c) ? "" : c));
     const dropOpt = e.replace(/\([^)]*\)/g, "");
     const out = new Set();
     [keepOpt, dropOpt].forEach((b) => { out.add(b); b.split(/\s+\/\s+/).forEach((v) => out.add(v)); });

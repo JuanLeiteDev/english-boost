@@ -107,7 +107,7 @@ Baseadas nos descritores CEFR B1 e no contexto Erasmus.
 
 - **Claude Code (VS Code) ou Codex:** sessões diárias. Começa sempre com *"vamos estudar"* ou *"o que faço hoje?"*.
 - **Painel visual:** `dashboard/index.html`, gerado com `python3 scripts/build_dashboard.py`.
-- **Anki** (telemóvel e computador): SRS fora da sessão.
+- **AnkiWeb** gratuito no Safari do iPhone para rever cartões simples; Anki gratuito no computador se precisares de criar cartões com áudio ou imagens.
 - **Voz:** modo de voz do Claude ou do ChatGPT para conversação livre; ditado do sistema para gerar transcrições para o `speaking-coach`.
 - **Write & Improve (Cambridge):** feedback automático e gratuito de escrita, como segunda opinião.
 - **Git:** commit no fim de cada sessão, para sincronizar entre dispositivos.
@@ -115,5 +115,5 @@ Baseadas nos descritores CEFR B1 e no contexto Erasmus.
 ## 8. Ações tuas fora do estudo
 
 - [ ] Confirmar com o coordenador Erasmus se existe requisito de nível de inglês e se tens acesso ao **OLS (EU Academy)**.
-- [ ] Instalar o Anki no telemóvel.
+- [x] Criar uma conta gratuita no AnkiWeb e abrir o site no Safari do iPhone.
 - [ ] Criar um repositório **privado** no GitHub para sincronizar o projeto.

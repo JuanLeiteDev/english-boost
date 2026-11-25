@@ -53,7 +53,7 @@ def _state_dir() -> Path:
             return d
         except OSError:
             continue
-    raise SystemExit("Sem nenhuma pasta com permissão de escrita para o estado da app (define EB_STATE_DIR).")
+    raise SystemExit("No writable folder for the app state (set EB_STATE_DIR).")
 
 
 STATE = _state_dir()
@@ -91,11 +91,15 @@ LISTENING_LINKS = [
 RESUME_FAILED = re.compile(r"no conversation found|no rollout found|could not find (?:the )?(?:session|thread|conversation)"
                            r"|(?:session|thread|conversation)[^\n]{0,40}not found|failed to resume|unknown (?:session|thread)", re.I)
 
-APP_CONTEXT = """Contexto: estás a falar com o Juan através da app web local "English Boost", não do VS Code.
-- Respostas curtas e bem estruturadas. Explicações em português (PT); prática em inglês. Segue AGENTS.md e usa as skills do projeto.
-- A app tem um painel lateral. Para abrir material, escreve numa linha sozinha um marcador: [[abrir:hoje]] (plano do dia), [[abrir:P1-02]] (unidade de gramática interativa), [[abrir:doc:caminho/ficheiro.md]] (documento) ou [[abrir:url:https://...]] (link externo).
-- Quando o Juan pedir o estudo do dia, abre [[abrir:hoje]] e a unidade de gramática do dia, e guia-o bloco a bloco.
-- Os exercícios de gramática são corrigidos na app. O fecho da sessão (log, espinha, dashboard) e o commit são feitos pelos botões da app: não faças isso tu e não peças comandos de terminal. Atualiza só o progress/error-log.md quando houver erros recorrentes."""
+APP_CONTEXT = """Context: you are talking to Juan in the local web app "English Boost" (not VS Code).
+LANGUAGE RULE (most important): write ONLY in English. Never write Portuguese, even if Juan writes in Portuguese.
+Use simple English at Juan's level (see Language-Tutor/learner-data/english/profile.json; now about A2): short sentences, common words, one idea per sentence. Explain a new word with an easy example, not a translation. Use richer English only when his level goes up.
+STYLE: be brief and practical. Usually under 120 words: one short explanation, one example, then a task or a question for Juan. Practice first, theory second.
+Follow AGENTS.md and use the project skills.
+The app has a main workspace. To open material there, write a marker on its own line: [[open:today]] (today's plan), [[open:P1-02]] (interactive grammar unit), [[open:doc:path/file.md]] (a project document) or [[open:url:https://...]] (external link).
+When Juan asks for today's study, open [[open:today]] and the grammar unit of the day, then guide him block by block.
+The app checks grammar exercises, closes sessions (log, spine, dashboard) and commits with its own buttons: do not do these yourself and never ask Juan to run terminal commands. Only update progress/error-log.md when you see recurring errors.
+Every file you write for Juan (feedback, results, plans, materials) must be in simple English and short: essentials only."""
 
 CLAUDE_TOOLS = ",".join([
     "Read", "Write", "Edit", "Glob", "Grep", "Skill", "WebSearch", "WebFetch", "TodoWrite",
@@ -162,7 +166,7 @@ def to_int(v, name: str, lo: int, hi: int, default=None) -> int | None:
     try:
         n = int(float(str(v).strip().rstrip("%")))
     except ValueError:
-        raise BadRequest(f"{name} inválido") from None
+        raise BadRequest(f"invalid {name}") from None
     return max(lo, min(hi, n))
 
 
@@ -285,11 +289,11 @@ def plan_for(day: dt.date):
     m = re.search(r"P[12]-\d\d", cells[0])
     return {"date": day.isoformat(), "week": p["week"], "file": p["file"],
             "blocks": [
-                {"key": "grammar", "label": "Gramática", "min": 22, "text": cells[0], "unit": m.group(0) if m else None},
+                {"key": "grammar", "label": "Grammar", "min": 22, "text": cells[0], "unit": m.group(0) if m else None},
                 {"key": "listening", "label": "Listening", "min": 15, "text": cells[1], "url": listening_link(cells[1])},
                 {"key": "output", "label": "Output", "min": 15, "text": cells[2],
                  "kind": "writing" if "escrita" in cells[2].lower() or "✍" in cells[2] else "speaking"},
-                {"key": "srs", "label": "Vocabulário", "min": 8, "text": cells[3]},
+                {"key": "srs", "label": "Vocabulary", "min": 8, "text": cells[3]},
             ]}
 
 
@@ -314,7 +318,7 @@ def state_payload() -> dict:
         "sessions": len({r["date"] for r in log}),
         "units_done": sum(1 for u in spine if u["status"] in ("done", "ok")),
         "units_total": len(spine),
-        "agents": {"claude": bool(claude), "codex": bool(codex)},
+        "agents": {"claude": bool(claude), "codex": bool(codex)}, "stt": stt_available(),
         "paths": {"claude": claude or "", "codex": codex or ""}, "os": os.name, "env": ENV_ID,
         "settings": settings(), "codex_models": cached("codex_models", 60, codex_models),
     }
@@ -391,10 +395,10 @@ def close_session(d: dict) -> dict:
     try:
         dt.date.fromisoformat(day)
     except ValueError:
-        raise BadRequest("data inválida") from None
-    minutes = to_int(d.get("minutes"), "minutos", 0, 600, 0)
-    pct = to_int(d.get("pct"), "percentagem", 0, 100, None)
-    words = to_int(d.get("words"), "palavras", 0, 500, 0)
+        raise BadRequest("invalid date") from None
+    minutes = to_int(d.get("minutes"), "minutes", 0, 600, 0)
+    pct = to_int(d.get("pct"), "percentage", 0, 100, None)
+    words = to_int(d.get("words"), "words", 0, 500, 0)
     row = "| " + " | ".join(cell(x) for x in [
         day, minutes, d.get("grammar"), f"{pct}%" if pct is not None else "—",
         d.get("listening"), d.get("output"), words, d.get("notes")]) + " |"
@@ -406,6 +410,57 @@ def close_session(d: dict) -> dict:
     return {"ok": True, "row": row, "dashboard": dash}
 
 
+# ---------------------------------------------------------------- speech to text (local Whisper)
+STT_MODEL = os.environ.get("STT_MODEL", "base.en")
+_STT: dict = {"model": None, "error": None}
+STT_LOCK = threading.Lock()
+MAX_AUDIO = 25 * 1024 * 1024
+
+
+def stt_available() -> bool:
+    if os.environ.get("EB_STT_FAKE"):  # test hook: returns a fixed transcript
+        return True
+    import importlib.util
+    return importlib.util.find_spec("faster_whisper") is not None
+
+
+def stt_model():
+    """Load (and on first use, download) the Whisper model once. CPU, int8: works everywhere."""
+    with STT_LOCK:
+        if _STT["model"] is None and _STT["error"] is None:
+            try:
+                from faster_whisper import WhisperModel
+                _STT["model"] = WhisperModel(STT_MODEL, device="cpu", compute_type="int8",
+                                             download_root=os.environ.get("STT_MODELS_DIR") or None)
+            except Exception as e:  # missing package, no network for the first download, ...
+                _STT["error"] = f"{type(e).__name__}: {e}"
+                traceback.print_exc()
+        return _STT["model"]
+
+
+def transcribe(audio: bytes, content_type: str) -> dict:
+    if os.environ.get("EB_STT_FAKE"):
+        return {"text": os.environ["EB_STT_FAKE"], "seconds": 1.0}
+    model = stt_model()
+    if model is None:
+        raise RuntimeError(_STT["error"] or "speech model not available")
+    import tempfile
+    suffix = ".ogg" if "ogg" in content_type else ".mp4" if "mp4" in content_type else ".webm"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
+        f.write(audio)
+        path = f.name
+    try:
+        with STT_LOCK:
+            segments, info = model.transcribe(path, language="en", vad_filter=True, beam_size=5)
+            text = " ".join(seg.text.strip() for seg in segments).strip()
+        return {"text": text, "seconds": round(getattr(info, "duration", 0.0), 1)}
+    finally:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+
+
 # ---------------------------------------------------------------- git
 def _git(*args, timeout=90, env=None):
     e = {**os.environ, "GIT_TERMINAL_PROMPT": "0", "GCM_INTERACTIVE": "never", **(env or {})}
@@ -414,9 +469,9 @@ def _git(*args, timeout=90, env=None):
                            errors="replace", timeout=timeout, env=e, stdin=subprocess.DEVNULL)
         return r.returncode, (r.stdout + r.stderr).strip()
     except FileNotFoundError:
-        return 127, "git não está instalado"
+        return 127, "git is not installed"
     except subprocess.TimeoutExpired:
-        return 124, "o git demorou demasiado (rede ou credenciais?)"
+        return 124, "git took too long (network or credentials?)"
 
 
 def _git_identity() -> list[str]:
@@ -442,28 +497,28 @@ def git_save() -> dict:
     with GIT_LOCK:
         code, msg = _git("rev-parse", "--is-inside-work-tree")
         if code != 0:
-            return {"ok": False, "msg": "Esta pasta não é um repositório Git."}
+            return {"ok": False, "msg": "This folder is not a Git repository."}
         code, msg = _git("add", "-A")
         if code != 0:
             return {"ok": False, "msg": msg[-600:]}
         if _git("diff", "--cached", "--quiet")[0] == 0:
-            out = ["Nada de novo para guardar."]
+            out = ["Nothing new to save."]
         else:
             code, msg = _git(*_git_identity(), "commit", "-m", f"study: {dt.date.today().isoformat()} (app)")
             if code != 0:
                 return {"ok": False, "msg": msg[-600:]}
-            out = ["Commit feito."]
+            out = ["Committed."]
         if not _git("remote")[1]:
-            out.append("Sem repositório remoto (o push fica para quando o configurares).")
+            out.append("No remote repository yet (push skipped).")
             return {"ok": True, "msg": " ".join(out)}
         has_upstream = _git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")[0] == 0
         if has_upstream:
             code, ahead = _git("rev-list", "--count", "@{u}..HEAD")
             if code == 0 and ahead.strip() == "0":
-                out.append("O GitHub já está atualizado.")
+                out.append("GitHub is already up to date.")
                 return {"ok": True, "msg": " ".join(out)}
         code, msg = _git("push") if has_upstream else _git("push", "-u", "origin", "HEAD")
-        out.append("Enviado para o GitHub." if code == 0 else f"Push falhou: {msg[-300:]}")
+        out.append("Pushed to GitHub." if code == 0 else f"Push failed: {msg[-300:]}")
         return {"ok": code == 0, "msg": " ".join(out)}
 
 
@@ -509,16 +564,16 @@ def short(v, n=90) -> str:
 
 def claude_tool(name: str, inp: dict) -> str:
     if name in ("Read", "Write", "Edit", "NotebookEdit"):
-        verb = {"Read": "Ler", "Write": "Escrever", "Edit": "Editar"}.get(name, name)
+        verb = {"Read": "Read", "Write": "Write", "Edit": "Edit"}.get(name, name)
         return f"{verb} {rel(inp.get('file_path', ''))}"
     if name == "Bash":
-        return f"Comando: {short(inp.get('command', ''))}"
+        return f"Command: {short(inp.get('command', ''))}"
     if name == "Skill":
         return f"Skill: {inp.get('skill') or inp.get('name') or ''}"
     if name in ("WebSearch", "WebFetch"):
         return f"Web: {short(inp.get('query') or inp.get('url') or '')}"
     if name in ("Glob", "Grep"):
-        return f"Procurar: {short(inp.get('pattern', ''))}"
+        return f"Search: {short(inp.get('pattern', ''))}"
     return name
 
 
@@ -549,7 +604,7 @@ def build_cmd(agent: str, conv: dict) -> tuple[list[str] | None, str, str]:
     if agent == "claude":
         binp = find_claude()
         if not binp:
-            return None, "", "Não encontrei o Claude Code (extensão do VS Code ou CLI). Vê ⚙ Definições."
+            return None, "", "Claude Code was not found (VS Code extension or CLI). Check Settings."
         cmd = launcher(binp) + ["-p", "--output-format", "stream-json", "--verbose", "--include-partial-messages",
                                 "--permission-mode", "acceptEdits", "--allowedTools", CLAUDE_TOOLS,
                                 "--append-system-prompt", APP_CONTEXT]
@@ -560,7 +615,7 @@ def build_cmd(agent: str, conv: dict) -> tuple[list[str] | None, str, str]:
         return cmd, "", ""
     binp = find_codex()
     if not binp:
-        return None, "", "Não encontrei o Codex CLI. Vê ⚙ Definições."
+        return None, "", "Codex CLI was not found. Check Settings."
     model = s.get("codex_model") or "gpt-6-sol"
     # In Docker the container is the sandbox (Codex's own sandbox needs kernel features
     # containers usually lack), so compose.yaml sets CODEX_SANDBOX=danger-full-access.
@@ -582,7 +637,7 @@ def _attempt(agent: str, cmd: list[str], stdin_text: str, conv: dict, reply: dic
         proc = subprocess.Popen(cmd, cwd=ROOT, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 text=True, encoding="utf-8", errors="replace", bufsize=1, **kw)
     except OSError as e:
-        errors.append(f"Falha ao iniciar o agente: {e}")
+        errors.append(f"Could not start the agent: {e}")
         return res
     with SLOTS_LOCK:
         RUNNING[agent] = proc
@@ -657,7 +712,7 @@ def _attempt(agent: str, cmd: list[str], stdin_text: str, conv: dict, reply: dic
                     if e.get("session_id"):
                         conv["session"] = e["session_id"]
                     if e.get("is_error"):
-                        errors.append(short(e.get("result") or "Erro do Claude", 400))
+                        errors.append(short(e.get("result") or "Claude error", 400))
                     elif not reply["text"] and e.get("result"):
                         add_text(str(e["result"]))
             else:
@@ -671,10 +726,10 @@ def _attempt(agent: str, cmd: list[str], stdin_text: str, conv: dict, reply: dic
                             add_text("\n\n")
                         add_text(it.get("text", ""))
                     elif et == "item.started" and ty == "command_execution":
-                        add_tool(f"Comando: {short(it.get('command', ''))}")
+                        add_tool(f"Command: {short(it.get('command', ''))}")
                     elif et == "item.completed" and ty == "file_change":
                         for ch in it.get("changes") or []:
-                            add_tool(f"Editar {rel(ch.get('path', ''))}")
+                            add_tool(f"Edit {rel(ch.get('path', ''))}")
                     elif et == "item.completed" and ty == "web_search":
                         add_tool(f"Web: {short(it.get('query', ''))}")
                 elif et in ("turn.failed", "error"):
@@ -698,7 +753,7 @@ def run_agent(agent: str, text: str, emit) -> None:
     notice = None
     if conv.get("session") and conv.get("env") != ENV_ID:
         conv["session"] = None  # sessions live in each environment's own CLI store (native vs Docker)
-        notice = "Nova conversa neste ambiente (o histórico anterior continua visível)."
+        notice = "New conversation in this environment (old messages stay visible)."
     conv["env"] = ENV_ID
     conv["messages"].append({"role": "user", "text": text, "ts": dt.datetime.now().isoformat(timespec="seconds")})
     reply = {"role": "assistant", "text": "", "tools": [], "agent": agent,
@@ -719,21 +774,21 @@ def run_agent(agent: str, text: str, emit) -> None:
             if (attempt == 0 and failed and had_session and not res["output"] and agent not in STOPPED
                     and not res["timeout"] and RESUME_FAILED.search(blob)):
                 conv["session"] = None  # stale session id: start a fresh conversation once
-                note = "A conversa anterior já não existe neste agente; comecei uma nova."
+                note = "The old conversation no longer exists for this agent, so a new one started."
                 reply["tools"].append(note)
                 emit({"t": "tool", "v": note})
                 continue
             break
         if agent in STOPPED:
-            emit({"t": "tool", "v": "Parado."})
+            emit({"t": "tool", "v": "Stopped."})
         elif res["timeout"]:
-            emit({"t": "error", "v": f"O agente excedeu o tempo limite ({AGENT_TIMEOUT // 60} min) e foi parado."})
+            emit({"t": "error", "v": f"The agent hit the time limit ({AGENT_TIMEOUT // 60} min) and was stopped."})
         else:
             for m in res["errors"]:
                 emit({"t": "error", "v": m})
             if res["code"] not in (0, None) and not reply["text"] and not res["errors"]:
                 tail = res["stderr"].strip().splitlines()[-3:]
-                emit({"t": "error", "v": short(" ".join(tail) or f"O agente terminou com código {res['code']}", 400)})
+                emit({"t": "error", "v": short(" ".join(tail) or f"The agent exited with code {res['code']}", 400)})
     finally:
         if reply["text"] or len(reply["tools"]) > (1 if notice else 0):
             conv["messages"].append(reply)
@@ -801,18 +856,18 @@ class Handler(BaseHTTPRequestHandler):
         try:
             n = int(self.headers.get("Content-Length") or 0)
         except ValueError:
-            raise BadRequest("Content-Length inválido") from None
+            raise BadRequest("invalid Content-Length") from None
         if n < 0 or n > MAX_BODY:
-            raise BadRequest("pedido demasiado grande")
+            raise BadRequest("request too large")
         raw = self.rfile.read(n) if n else b""
         if not raw:
             return {}
         try:
             d = json.loads(raw)
         except ValueError:
-            raise BadRequest("JSON inválido") from None
+            raise BadRequest("invalid JSON") from None
         if not isinstance(d, dict):
-            raise BadRequest("JSON inválido")
+            raise BadRequest("invalid JSON")
         return d
 
     def _safely(self, fn):
@@ -828,7 +883,7 @@ class Handler(BaseHTTPRequestHandler):
             traceback.print_exc()
             if not self._sent:
                 try:
-                    self._json({"error": f"erro interno: {type(e).__name__}: {e}"}, 500)
+                    self._json({"error": f"internal error: {type(e).__name__}: {e}"}, 500)
                 except OSError:
                     pass
 
@@ -847,7 +902,7 @@ class Handler(BaseHTTPRequestHandler):
         if p in ("/", "/index.html"):
             html = (STATIC / "index.html").read_text(encoding="utf-8").replace("__TOKEN__", TOKEN)
             return self._send(200, html.encode(), "text/html; charset=utf-8")
-        if p in ("/guia", "/guia.html"):
+        if p in ("/guia", "/guia.html", "/guide", "/guide.html"):
             f = ROOT / "docs" / "guia.html"
             return self._send(200, f.read_bytes(), "text/html; charset=utf-8") if f.is_file() else self._send(404, b"not found", "text/plain")
         if p.startswith("/static/"):
@@ -893,7 +948,7 @@ class Handler(BaseHTTPRequestHandler):
         if p == "/api/chat/history":
             agent = q.get("agent", "claude")
             if agent not in ("claude", "codex"):
-                raise BadRequest("agente inválido")
+                raise BadRequest("invalid agent")
             c = chats()[agent]
             return self._json({"messages": c.get("messages", [])[-80:], "running": agent in RUNNING})
         return self._send(404, b"not found", "text/plain")
@@ -902,14 +957,29 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok() or self.headers.get("X-Token") != TOKEN:
             return self._send(403, b"forbidden", "text/plain")
         p = urlparse(self.path).path
+        if p == "/api/transcribe":  # raw audio body (webm/ogg/mp4) from the browser's MediaRecorder
+            if not stt_available():
+                return self._json({"error": "Local speech-to-text is not installed (use Docker, or pip install faster-whisper)."}, 501)
+            try:
+                n = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                raise BadRequest("invalid Content-Length") from None
+            if n <= 0 or n > MAX_AUDIO:
+                raise BadRequest("audio missing or too large")
+            audio = self.rfile.read(n)
+            try:
+                return self._json(transcribe(audio, self.headers.get("Content-Type") or ""))
+            except Exception as e:  # model missing, unreadable audio, library mismatch...
+                traceback.print_exc()
+                return self._json({"error": f"Speech-to-text failed: {type(e).__name__}: {e}"}, 503)
         d = self._body()
         if p == "/api/chat/send":
             agent = d.get("agent") if d.get("agent") in ("claude", "codex") else "claude"
             text = str(d.get("text") or "").strip()
             if not text:
-                raise BadRequest("mensagem vazia")
+                raise BadRequest("empty message")
             if not reserve(agent):
-                return self._json({"error": "O agente ainda está a responder."}, 409)
+                return self._json({"error": "The agent is still answering."}, 409)
             try:
                 # HTTP/1.1 chunked streaming: the end of the reply is an explicit zero-length chunk,
                 # so browsers see a clean finish instead of an aborted request on connection close.
@@ -956,7 +1026,7 @@ class Handler(BaseHTTPRequestHandler):
         if p == "/api/chat/reset":
             agent = d.get("agent")
             if agent not in ("claude", "codex"):
-                raise BadRequest("agente inválido")
+                raise BadRequest("invalid agent")
             stop_agent(agent)
             reset_chat(agent)
             return self._json({"ok": True})
@@ -964,12 +1034,12 @@ class Handler(BaseHTTPRequestHandler):
             uid = str(d.get("id", ""))
             if not unit_path(uid):
                 return self._json({"error": "missing"}, 404)
-            pct = to_int(d.get("pct"), "percentagem", 0, 100, None)
+            pct = to_int(d.get("pct"), "percentage", 0, 100, None)
             if pct is None:
-                raise BadRequest("percentagem em falta")
+                raise BadRequest("missing percentage")
             status = update_spine(uid, pct)
             if status is None:
-                return self._json({"error": f"{uid} não está na espinha"}, 404)
+                return self._json({"error": f"{uid} is not in the grammar spine"}, 404)
             out = ROOT / "progress" / "exercises"
             out.mkdir(parents=True, exist_ok=True)
             items = d.get("items") if isinstance(d.get("items"), list) else []
@@ -1018,23 +1088,26 @@ def main():
         srv = Server((a.host, a.port), Handler)
     except OSError as e:
         if e.errno in (errno.EADDRINUSE, 10048, 10013):
-            print(f"A porta {a.port} já está ocupada (a app já está aberta, ou o Docker está ligado?).\n"
-                  f"Abre http://127.0.0.1:{a.port} ou usa outra porta: --port {a.port + 1}", file=sys.stderr)
+            print(f"Port {a.port} is already in use (is the app already open, or is Docker running?).\n"
+                  f"Open http://127.0.0.1:{a.port} or use another port: --port {a.port + 1}", file=sys.stderr)
             sys.exit(2)
         raise
     url = f"http://127.0.0.1:{a.port}"
-    print(f"English Boost a correr em {url}  (Ctrl+C para sair)", flush=True)
+    print(f"English Boost running at {url}  (Ctrl+C to quit)", flush=True)
     if STATE != ROOT / "app" / "state":
-        print(f"  ⚠ O projeto não tem permissão de escrita: o histórico do chat fica em {STATE}; "
-              "registar sessões e guardar exercícios vai falhar até corrigires as permissões.", flush=True)
-    print(f"  Claude: {find_claude() or 'não encontrado'}")
-    print(f"  Codex:  {find_codex() or 'não encontrado'}", flush=True)
+        print(f"  Warning: the project folder is read-only. Chat history goes to {STATE}; "
+              "saving sessions and exercises will fail until the permissions are fixed.", flush=True)
+    print(f"  Claude: {find_claude() or 'not found'}")
+    print(f"  Codex:  {find_codex() or 'not found'}")
+    print(f"  Speech-to-text: {'local Whisper (' + STT_MODEL + ')' if stt_available() else 'not installed (browser dictation only)'}", flush=True)
+    if stt_available() and os.environ.get("STT_PRELOAD"):
+        threading.Thread(target=stt_model, daemon=True).start()  # download/load the model in the background
     if not a.no_browser:
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
-        print("\nAté amanhã! 👋")
+        print("\nSee you tomorrow!")
     finally:
         for agent in list(RUNNING):
             stop_agent(agent)

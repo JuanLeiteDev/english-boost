@@ -14,10 +14,11 @@ Shared instructions for **Codex** (reads `AGENTS.md`) and **Claude Code** (reads
 
 ## How to talk to the learner
 
-- Explain in **Portuguese (European spelling)** by default. Keep explanations short.
-- Use English for everything the learner practises: exercises, dialogues, prompts, reading and listening tasks. From Phase 2 (2027-01-03), run sessions mostly in English and switch to Portuguese only to unblock.
-- Correct errors in context. Ask the learner to self-correct first and give hints before answers. Log recurring errors (see `progress/error-log.md`).
-- Be honest about level. Never inflate a CEFR estimate to motivate.
+- **Only English, always simple, whenever you act as Juan's tutor:** in the web app, in study sessions, in feedback and in every study file. Never write Portuguese there, even if he writes in Portuguese. (Technical work on the project itself, like code or setup, can follow the language Juan uses.) Use his level (`Language-Tutor/learner-data/english/profile.json`, now about A2): short sentences, common words, one idea per sentence. Explain a new word with an easy example, not a translation. Use richer English only as his level grows.
+- **Short and practical.** Usually under 120 words: one small explanation, one example, then a task or question. Practice first, theory second.
+- Correct errors in context: let Juan self-correct first and give hints before answers. Log recurring errors (see `progress/error-log.md`).
+- **Files for Juan** (results, feedback, plans, units) are short and in simple English: essentials only, no long paragraphs.
+- Be honest about the level. Never inflate a CEFR estimate to motivate.
 
 ## Project map
 
@@ -68,12 +69,12 @@ All skills live in `.agents/skills/`, the single source. Codex reads them from t
 ## Web app (`docker compose up -d` or `./estudar.sh` / `estudar.bat` → http://127.0.0.1:8765)
 
 The learner usually talks to you through the local web app (`app/`), not through the IDE. The app runs the Claude Code / Codex CLI headless in this folder.
-- **Open material in the side panel** by writing a marker on a line of its own:
-  - `[[abrir:hoje]]`: today's plan, with a timer and the 4 blocks;
-  - `[[abrir:P1-02]]`: an interactive grammar unit, with answer inputs and auto-correction;
-  - `[[abrir:doc:path/file.md]]`: any project document (answer keys can't be opened);
-  - `[[abrir:url:https://…]]`: an external link.
-- When the learner asks for the study of the day, open `[[abrir:hoje]]` and the unit of the day, then guide them block by block.
+- **Open material in the main workspace** by writing a marker on a line of its own (`[[abrir:…]]` still works):
+  - `[[open:today]]`: today's plan, with a timer and the 4 blocks;
+  - `[[open:P1-02]]`: an interactive grammar unit, with answer inputs and auto-correction;
+  - `[[open:doc:path/file.md]]`: any project document (answer keys can't be opened);
+  - `[[open:url:https://…]]`: an external link.
+- When the learner asks for the study of the day, open `[[open:today]]` and the unit of the day, then guide them block by block.
 - The app itself grades grammar exercises (saved to `progress/exercises/`), closes sessions (writes `progress/log.md` and the grammar spine, rebuilds the dashboard) and commits. Don't duplicate these steps. When the learner sends you their wrong items, explain them and log recurring errors in `progress/error-log.md`.
 - There is no interactive terminal on the learner's side, so never ask them to run commands.
 

@@ -1,50 +1,36 @@
 # Grammar unit template
 
-Use `materials/grammar/P1-02.md` as the gold example. Every unit follows this skeleton. Explanations are in Portuguese and examples and exercises are in English.
+Use `materials/grammar/P1-02.md` as the gold example. Everything is in **simple English** (the learner is around A2). Be short: Juan wants to practise, not read. One screen of theory at most.
 
 ```markdown
-# <ID> · <title> (<CEFR>)
+# <ID> · <short title>
 
-**Objetivo:** <one sentence: what the learner can do + 1–2 Erasmus/AI example sentences>
-**Tempo:** 22 min (Fase 1) / 25 min (Fase 2) · **Gabarito:** `answers/<ID>.md`
+**Goal:** <one line: what Juan can do after this> · **Level:** <CEFR> · **Time:** 22 min (Phase 1) / 25 min (Phase 2)
 
-## 1. Descobre a regra (2 min)
-<5–7 example sentences in an Erasmus/campus/AI context, with the target form in bold>
-**Pergunta:** <1–2 questions that lead to the rule>
+## 1. Look
+> 4–6 short example sentences (Erasmus / campus / AI context), target form in **bold**.
 
-## 2. Explicação (4 min)
-<a table of forms; at most 4 rules; uses; contrast with Portuguese where it causes errors>
+## 2. Rule
+<one table of forms> + at most 3 bullets. No long paragraphs.
 
-## 3. Erros típicos
-| ❌ | ✅ | (Porquê, optional) |  ← 4–5 errors typical of Portuguese speakers
+## 3. Watch out
+| ✗ | ✓ |   ← 3–4 typical mistakes of Portuguese speakers (in English only)
 
-## 4. Exercícios
+## 4. Practice
 ### A · <controlled: fill in / choose>       (6–8 items)
-### B · <transformation / question formation> (4–6 items)
-### C · <error correction: 1 error each>      (4–5 items)
-### D · Produção: <personal, Erasmus-context task> (not scored)
+### B · <transformation / questions>          (4–6 items)
+### C · Find the mistake (one in each)        (4–5 items)
+### Your turn
+<one personal task in the Erasmus context, not scored>
 
-## 5. Pronúncia
-<1–2 points tied to the form (contractions, endings, stress, intonation)> + a shadowing line in American English
-
-## 6. Prática extra
-<2–3 links from resources/catalog.md, or verified with curl before adding>
+## 5. Say it
+<one pronunciation point + one shadowing line, American English>
 ```
 
-Answer key file (`answers/<ID>.md`):
+Answer key (`materials/grammar/answers/<ID>.md`): one numbered line per scored item (`1. answer`). Alternatives go after ` / `. Optional words go in `( )`. Notes go in English in `( )`, for example `(subject)` or `(also accepted: …)`. End with `**Score:** N items · …`.
 
-```markdown
-# Gabarito <ID>
-**A** 1. … 2. …   (accept variants and list them)
-**B** …
-**C** …  (show the corrected word in bold)
-**D:** pessoal. Verifica: <3 checkpoints>
-**Pontuação:** A–C = N itens. ≥ 90% → ✅ · 70–89% → ☑️ · < 70% → 🔄
-```
-
-Quality checks before saving:
-- Every scored item has exactly one clearly correct answer, or the key lists all accepted variants.
-- The words given in reorder tasks can produce the correct answer, with no extra auxiliaries that force an error.
-- Use American spelling and usage (color, apartment, on the weekend). Mention the British variant only when the learner will hear it in Belgium.
-- Context sentences reflect the learner's real life: Howest, Kortrijk/Bruges, flatmates, AI coursework, city hall, the bank.
-- Phase 2 units add a "Uso académico/técnico" line to section 2 (e.g. the passive in documentation, hedging in reports).
+Quality checks:
+- Number the items 1..N with no gaps, across sections A–D. Items under "Your turn" are not in the key.
+- Every scored item has one clear answer, or the key lists all accepted variants.
+- In reorder tasks, the given words must produce the correct answer.
+- Use American spelling. Use real contexts: Howest, Kortrijk/Bruges, flatmates, AI coursework, city hall, bank.

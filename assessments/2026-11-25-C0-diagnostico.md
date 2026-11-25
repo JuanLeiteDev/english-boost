@@ -1,15 +1,11 @@
-# C0: Diagnóstico inicial (2026-11-25), 60 min
+# C0 · Diagnostic test
 
-**Como fazer:** diz ao Claude ou ao Codex *"vamos fazer o diagnóstico C0"*. A skill `english-examiner` conduz as partes, corrige e no fim escreve o perfil em `Language-Tutor/learner-data/english/profile.json`.
-**Regras:** sem dicionário, sem tradutor, sem consultar nada. Se não souberes, escreve "?". Isso também é informação.
+**60 minutes · 4 parts.** Do it without help: no dictionary, no translator. Write "?" if you don't know. That's useful information too.
+Start by telling the tutor: *"Let's do the C0 diagnostic."*
 
-Antes de começar, confirma que tens o material oficial: `bash scripts/fetch-official-materials.sh`.
+## Part A · Grammar (20 min)
 
----
-
-## Parte A: Gramática (20 min, 35 itens)
-
-Escreve só a resposta (ex.: `1. is`). As perguntas sobem de nível; não faz mal se as últimas ficarem em branco.
+Write only the missing words (example: `1. is`).
 
 1. My brother ___ a student. (am / is / are)
 2. ___ you from Brazil?
@@ -29,7 +25,7 @@ Escreve só a resposta (ex.: `1. is`). As perguntas sobem de nível; não faz ma
 16. ___ you ___ (go) to the party last Saturday?
 17. I ___ (cook) when the phone ___ (ring).
 18. Next year I ___ (study) in Belgium. It's all planned.
-19. It's cold in here. I ___ close the window. (offer, decided now)
+19. It's cold in here. I ___ close the window.
 20. Belgium is ___ (small) than Portugal.
 21. You ___ wear a uniform. It's optional.
 22. ___ you ever ___ (be) to Paris?
@@ -47,39 +43,32 @@ Escreve só a resposta (ex.: `1. is`). As perguntas sobem de nível; não faz ma
 34. I'm not used to ___ (wake) up so early.
 35. My laptop, ___ I bought last year, is already slow.
 
-## Parte B: Listening (15 min, material oficial Cambridge)
+## Part B · Listening (15 min)
 
-1. **A2 Key, Listening Part 1** (5 perguntas):
-   - Enunciado: `materials/official/a2-key/…/A2 Key 2022 sample tests Listening - question paper.pdf`
-   - Áudio: `a2-key-listening-sample-test.mp3`
-   - Ouve cada diálogo **2 vezes**, como no exame.
-2. **B1 Preliminary, Listening Part 1** (7 perguntas):
-   - Enunciado: `materials/official/b1-preliminary/…/B1 Preliminary 2022 sample Listening - question paper.pdf`
-   - Áudio: `b1-preliminary-2022-listening-test-audio.mp3`
-3. Escreve as respostas (ex.: `A2-1: B`). O examiner corrige com os gabaritos oficiais.
-4. Escreve numa frase o que foi mais difícil: velocidade, palavras desconhecidas ou sotaque.
+Official Cambridge audio, in `materials/official/`. Listen to each part **twice**.
 
-## Parte C: Escrita (12 min)
+1. **A2 Key, Listening Part 1**: 5 questions.
+2. **B1 Preliminary, Listening Part 1**: 7 questions.
 
-**Tarefa:** escreve um email ao teu futuro *buddy* da Howest (80–100 palavras). Inclui:
-- quem és e de onde vens;
-- o que vais estudar e porquê;
-- uma pergunta sobre a cidade (Kortrijk ou Bruges);
-- uma pergunta sobre alojamento.
+Write your answers like `A2-1: B`. Then write one sentence: what was the hardest part (speed, new words or accent)?
 
-Começa com *Hi …,*. Guarda o texto em `writing/2026-11-25-C0-email-buddy.md`.
+## Part C · Writing (12 min)
 
-## Parte D: Speaking (13 min)
+Write an email to your future Howest buddy (80–100 words):
+- who you are and where you're from;
+- what you will study and why;
+- one question about the city;
+- one question about housing.
 
-Usa o ditado por voz (Windows: Win+H · Android/iOS: microfone do teclado · Google Docs: *Voice typing*) e **fala sem parar para corrigir**. Cola a transcrição tal como saiu, sem a corrigir.
+Start with *Hi …,*
 
-1. *Introduce yourself.* Name, city, studies, hobbies. (1 min)
-2. *Describe a normal day in your life.* (1 min)
-3. *Tell me about your last holiday or a memorable weekend.* (1–2 min)
-4. *Why do you want to do Erasmus, and what are you worried about?* (1–2 min)
+## Part D · Speaking (13 min)
 
-Guarda tudo em `speaking/2026-11-25-C0-transcript.md`. Indica também quanto tempo falaste em cada resposta (aproximado).
+Press the **mic** in the chat and speak. Don't stop to fix mistakes.
 
----
+1. Introduce yourself. (1 min)
+2. Describe a normal day. (1 min)
+3. Tell me about your last holiday. (1–2 min)
+4. Why do you want to do Erasmus? What worries you? (1–2 min)
 
-**Resultado esperado:** um nível CEFR por competência (listening, reading, speaking, writing, grammar, vocabulary), as 5 prioridades para a Fase 1 e o ajuste da semana 1 (`plan/weeks/semana-01.md`).
+**Result:** your level in each skill and your 5 priorities for Phase 1.

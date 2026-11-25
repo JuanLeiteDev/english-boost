@@ -10,14 +10,13 @@ Funciona com o **Claude Code** e com o **Codex**, com skills partilhadas e todo 
 | **🐳 Docker (recomendado, igual em todos)** | `docker compose up -d` | `docker compose up -d` |
 | Nativo (sem Docker) | `./estudar.sh` | `estudar.bat` |
 
-Depois abre **http://127.0.0.1:8765**. 📘 O guia completo (como usar, arquitetura, Docker, autenticação, instalação noutro PC) está em [`docs/guia.html`](docs/guia.html), também disponível na app em **Recursos → Guia**.
+Depois abre **http://127.0.0.1:8765**. 📘 O guia completo (como usar, arquitetura, Docker, autenticação, instalação noutro PC) está em [`docs/guia.html`](docs/guia.html), também disponível na app em **Guide** (canto inferior esquerdo) ou em http://127.0.0.1:8765/guide.
 
 | Menu | O que tem |
 |---|---|
 | 💬 **Estudar** | Chat com o **Claude ou o Codex** (escolhes no topo), sugestões prontas e um painel lateral que abre sozinho: **Hoje** (plano do dia, cronómetro, *Terminar sessão*), **Exercício** (respostas dentro da unidade, *Corrigir* ✓/✗, *Explicar erros*) e **Documento** |
 | 📘 **Gramática** | As 45 unidades por cores; clica numa para a abrir |
 | 📈 **Progresso** | Horas, sequência de dias, calendário, erros recorrentes, checkpoints e **Guardar no Git** |
-| 📖 **Recursos** | Links verificados, plano, semana atual, estudos |
 
 - 🎤 **Falar em inglês:** botão do microfone (Chrome ou Edge). 🔊 **Ouvir** uma resposta em inglês americano: botão em cada mensagem.
 - **Sem API:** a app usa o Claude Code (extensão do VS Code) e o Codex (app ChatGPT) instalados no PC, com as tuas contas. Modelos: ⚙ Definições.
