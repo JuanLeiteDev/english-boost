@@ -84,18 +84,23 @@
     $("#btn-theme").title = dark ? "Light theme" : "Dark theme";
   }
   function toggleTheme() {
+    const root = document.documentElement;
     const next = isDark() ? "light" : "dark";
-    const apply = () => { document.documentElement.dataset.theme = next; store.set("theme", next); paintThemeBtn(); };
-    if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) return apply();
-    // the new theme grows as a circle from the button until it covers the whole screen
+    const apply = () => { root.dataset.theme = next; store.set("theme", next); paintThemeBtn(); };
+    // No CSS transitions while the theme changes: otherwise colours fade at different speeds
+    // (and, inside the view transition, from the old theme), which looks like a flash.
+    root.classList.add("theming");
+    const done = () => requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("theming")));
+    if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) { apply(); done(); return; }
+    // The new theme grows as a circle from the button. The animation lives in CSS (with
+    // fill-mode "both") so the new snapshot is clipped from its very first frame; starting it
+    // from JS after `vt.ready` left one frame where the whole new theme showed, then vanished.
     const r = $("#btn-theme").getBoundingClientRect();
     const x = r.left + r.width / 2, y = r.top + r.height / 2;
-    const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-    const vt = document.startViewTransition(apply);
-    vt.ready.then(() => document.documentElement.animate(
-      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${end}px at ${x}px ${y}px)`] },
-      { duration: 750, easing: "cubic-bezier(.2,.7,.1,1)", pseudoElement: "::view-transition-new(root)" },
-    )).catch(() => {});
+    root.style.setProperty("--vt-x", `${x}px`);
+    root.style.setProperty("--vt-y", `${y}px`);
+    root.style.setProperty("--vt-r", `${Math.ceil(Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)))}px`);
+    document.startViewTransition(apply).finished.finally(done);
   }
 
   /* layout: show/hide sidebar and chat, resize the chat */
@@ -301,6 +306,21 @@
     h.messages.forEach((m) => { const e = msgEl(m); e.style.animation = "none"; box.appendChild(e); });
     renderInlineChips();
     box.scrollTop = h.messages.length ? box.scrollHeight : 0;
+    if (h.messages.length) requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });  // after fonts/layout settle
+  }
+
+  /* Keep the chat pinned to the bottom while a reply streams in, unless the learner scrolls up.
+     "Pinned" is decided by the learner's own scrolling, not by measuring after each render:
+     a big chunk (a table, a long paragraph) used to grow the list past the threshold and stop
+     the auto-scroll for the rest of the reply. */
+  const nearBottom = (box) => box.scrollHeight - box.scrollTop - box.clientHeight < 48;
+  function follow(box) {
+    const f = { stick: true };
+    f.onScroll = () => { f.stick = nearBottom(box); };
+    f.pin = () => { if (f.stick) box.scrollTop = box.scrollHeight; };
+    f.stop = () => box.removeEventListener("scroll", f.onScroll);
+    box.addEventListener("scroll", f.onScroll, { passive: true });
+    return f;
   }
 
   function setAgent(a) {
@@ -333,13 +353,14 @@
     const el = msgEl(m);
     fillAssistant(el, m, true);
     box.appendChild(el);
-    box.scrollTop = box.scrollHeight;
     renderInlineChips();
+    box.scrollTop = box.scrollHeight;
+    const fw = follow(box);
     setRunning(true);
     const opened = new Set();
     let raf = 0, finished = false;
-    const paint = () => { raf = 0; if (finished) return; fillAssistant(el, m, true); const near = box.scrollHeight - box.scrollTop - box.clientHeight < 160; if (near) box.scrollTop = box.scrollHeight; };
-    const addErr = (msg) => { const e = document.createElement("div"); e.className = "err"; e.innerHTML = `${ic("alert", "sm")}<span></span>`; $("span", e).textContent = msg; $(".bubble", el).appendChild(e); };
+    const paint = () => { raf = 0; if (finished) return; fillAssistant(el, m, true); fw.pin(); };
+    const addErr = (msg) => { const e = document.createElement("div"); e.className = "err"; e.innerHTML = `${ic("alert", "sm")}<span></span>`; $("span", e).textContent = msg; $(".bubble", el).appendChild(e); fw.pin(); };
     try {
       const r = await post("/api/chat/send", { agent: S.agent, text });
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
@@ -371,6 +392,8 @@
       if (raf) cancelAnimationFrame(raf);
       setRunning(false);
       fillAssistant(el, m, false);
+      fw.pin();  // the final render adds the "open" pills below the text
+      fw.stop();
       $(".speak", el).onclick = () => speak(m.text);
       $(".copy", el).onclick = () => copyText(m.text);
       loadState().then(() => { if (S.tab === "today") renderToday(); });
@@ -807,7 +830,7 @@
         if (d.min) c += d.min >= d.target ? " l3" : d.min >= d.target * 0.6 ? " l2" : " l1";
         else if (d.past) c += " miss";
         if (d.today) c += " today";
-        return `<div class="${c}" title="${d.date} · ${d.min} min${d.cp ? " · " + d.cp : ""}">${+d.date.slice(8)}${d.cp ? `<b>${d.cp}</b>` : ""}</div>`;
+        return `<button class="${c}" data-date="${d.date}" title="${d.date} · ${d.min} min${d.cp ? " · " + d.cp : ""} · see the plan">${+d.date.slice(8)}${d.cp ? `<b>${d.cp}</b>` : ""}</button>`;
       }).join("");
     const docList = (title, items) => items.length ? `<h2 style="margin-top:22px">${title}</h2><ul class="links">${items.map((r) => `<li><a href="#" data-open="${esc(r)}">${ic("file", "sm")}${esc(r.split("/").pop().replace(/\.md$/, ""))}</a></li>`).join("")}</ul>` : "";
     root.innerHTML = `
@@ -828,6 +851,43 @@
         <div class="card"><h2>Last sessions</h2>${p.recent.length ? `<table class="tbl"><tr><th>Date</th><th class="num">Min</th><th>Grammar</th><th class="num">%</th></tr>${p.recent.map((r) => `<tr><td class="mono">${fmtDate(r.date)}</td><td class="num">${r.min}</td><td>${esc(r.grammar)}</td><td class="num">${esc(r.pct)}</td></tr>`).join("")}</table>` : `<div class="none">${ic("inbox", "sm")}The first one is the C0 diagnostic.</div>`}</div>
       </div>`;
     $$("[data-open]", root).forEach((a) => (a.onclick = (e) => { e.preventDefault(); openDoc(a.dataset.open); }));
+    $$(".cal button.d", root).forEach((b) => (b.onclick = () => openDay(b.dataset.date)));
+  }
+
+  /* one day of the plan, opened from the Progress calendar */
+  const DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  async function openDay(date) {
+    const d = $("#dlg-day"), body = $("#dd-body"), acts = $("#dd-actions");
+    const dow = DOW[(new Date(`${date}T12:00:00`).getDay() + 6) % 7];
+    $("#dd-eyebrow").textContent = `${dow} · ${fmtDate(date)}`;
+    $("#dd-title").innerHTML = "Day";
+    body.innerHTML = `<div class="sk" style="height:60px"></div><div class="sk" style="height:60px;margin-top:8px"></div><div class="sk" style="height:60px;margin-top:8px"></div>`;
+    acts.innerHTML = "";
+    if (!d.open) d.showModal();
+    let x;
+    try { x = await api(`/api/day?date=${encodeURIComponent(date)}`); }
+    catch (e) { body.innerHTML = emptyState("alert", esc(e.message)); return; }
+    const p = x.plan, wk = weekParts(p?.week);
+    $("#dd-title").innerHTML = `Day <em>${x.day}</em>`;
+    $("#dd-eyebrow").textContent = `${dow} · ${fmtDate(date)} · Week ${wk.week || x.week}${x.checkpoint ? ` · Checkpoint ${x.checkpoint}` : ""}`;
+    const studied = x.sessions.reduce((a, s) => a + s.min, 0);
+    const status = x.sessions.length
+      ? `<div class="dd-status ${studied >= x.target ? "good" : ""}">${ic("check", "sm")}<span>Studied ${studied} of ${x.target} min${x.sessions.map((s) => { const t = [s.grammar, s.pct].filter(Boolean).join(" "); return t ? ` · ${esc(t)}` : ""; }).join("")}</span></div>`
+      : x.past ? `<div class="dd-status bad">${ic("alert", "sm")}<span>No session logged on this day.</span></div>`
+        : `<div class="dd-status">${ic("calendar", "sm")}<span>${x.today ? "Today" : "Planned"} · goal ${x.target} min</span></div>`;
+    if (!p) {
+      body.innerHTML = `${status}${emptyState("calendar", "This week has no day-by-day plan yet.<br>The tutor plans one week at a time.")}`;
+      return;
+    }
+    body.innerHTML = `${status}${wk.title ? `<p class="dd-theme">${esc(wk.title)}</p>` : ""}<div class="dd-blocks">${p.blocks.map((b, i) => `
+      <div class="dd-block"><span class="num">${String(i + 1).padStart(2, "0")}</span>
+        <div><h3>${esc(b.label)}<span class="min">${b.min} min</span></h3><p>${inline(b.text) || "—"}</p></div></div>`).join("")}</div>`;
+    stagger($(".dd-blocks", body));
+    const btn = (label, cls, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = `btn sm ${cls}`; b.innerHTML = label; b.onclick = () => { d.close(); fn(); }; acts.appendChild(b); };
+    const unit = p.blocks.find((b) => b.key === "grammar")?.unit;
+    if (unit) btn(`${ic("book", "sm")}Open ${esc(unit)}`, "ghost", () => openUnit(unit));
+    btn(`${ic("file", "sm")}Week plan`, "ghost", () => openDoc(p.file));
+    if (x.today) btn(`Go to today${ic("arrow", "sm arrow")}`, "", () => openPanel("today"));
   }
 
   /* ---------------- settings / git ---------------- */
@@ -875,6 +935,7 @@
     $("#btn-settings").onclick = openSettings;
     $("#btn-theme").onclick = toggleTheme;
     $("#btn-git").onclick = gitSave;
+    $("#dlg-day").addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });  // click outside closes
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("chat-open") && !document.querySelector("dialog[open]")) document.body.classList.remove("chat-open"); });
     setRunning(false);
     setAgent(S.agent);

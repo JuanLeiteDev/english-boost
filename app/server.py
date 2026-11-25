@@ -353,6 +353,24 @@ def progress_payload() -> dict:
     }
 
 
+def day_payload(date_s: str) -> dict:
+    """The study plan and the logged sessions of one day (Progress calendar)."""
+    try:
+        day = dt.date.fromisoformat(date_s or "")
+    except ValueError:
+        raise BadRequest("invalid date")
+    if not bd.START <= day <= bd.END:
+        raise BadRequest("date out of range")
+    today = dt.date.today()
+    _, week, n = bd.phase_info(day)
+    return {
+        "date": day.isoformat(), "week": week, "day": n,
+        "target": 60 if day < bd.PHASE2 else 150, "checkpoint": bd.CHECKPOINTS.get(day, ""),
+        "plan": plan_for(day), "today": day == today, "past": day < today,
+        "sessions": [{**r, "date": r["date"].isoformat()} for r in bd.load_log() if r["date"] == day],
+    }
+
+
 def cell(s) -> str:
     return re.sub(r"\s+", " ", str(s if s is not None else "").replace("|", "/")).strip()[:300]
 
@@ -920,6 +938,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(state_payload())
         if p == "/api/progress":
             return self._json(progress_payload())
+        if p == "/api/day":
+            return self._json(day_payload(q.get("date", "")))
         if p == "/api/spine":
             units = bd.load_spine()
             for x in units:

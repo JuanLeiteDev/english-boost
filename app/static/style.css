@@ -317,8 +317,8 @@ li.wrong .ex-input { border-color: color-mix(in srgb, var(--bad) 55%, transparen
 .card h2 { font: 500 11.5px var(--mono); text-transform: uppercase; letter-spacing: .07em; color: var(--subtle); margin-bottom: 16px; display: flex; justify-content: space-between; }
 .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .cal .hd { font: 500 10.5px var(--mono); color: var(--subtle); text-align: center; padding-bottom: 4px; }
-.cal .d { height: 34px; border-radius: var(--r-s); background: var(--sunken); font: 500 10.5px var(--mono); padding: 3px 5px; position: relative; color: var(--subtle); transition: transform var(--d1) var(--ease); }
-.cal .d:hover { transform: scale(1.08); z-index: 1; }
+.cal .d { height: 34px; border: 0; border-radius: var(--r-s); background: var(--sunken); font: 500 10.5px var(--mono); padding: 3px 5px; position: relative; color: var(--subtle); text-align: left; vertical-align: top; display: block; width: 100%; transition: transform var(--d1) var(--ease), outline-color var(--d1); }
+.cal button.d:hover { transform: scale(1.08); z-index: 1; outline: 1px solid var(--signal); outline-offset: 1px; }
 .cal .d.blank { background: none; }
 .cal .d.p2 { box-shadow: inset 0 0 0 1px var(--line-strong); }
 .cal .d.l1 { background: color-mix(in srgb, var(--signal) 22%, var(--sunken)); color: var(--fg); }
@@ -352,7 +352,7 @@ li.wrong .ex-input { border-color: color-mix(in srgb, var(--bad) 55%, transparen
 .chat-head .title { display: flex; flex-direction: column; gap: 8px; }
 .chat-actions { display: flex; gap: 2px; }
 #btn-chat-close { display: none; }
-.msgs { flex: 1; overflow-y: auto; padding: 8px 18px 24px; scroll-behavior: smooth; }
+.msgs { flex: 1; overflow-y: auto; padding: 8px 18px 24px; overflow-anchor: none; }
 .welcome { padding: 26px 0 8px; animation: rise var(--d3) var(--ease) both; }
 .welcome h2 { font-size: 30px; letter-spacing: -.045em; line-height: 1; margin-top: 14px; }
 .welcome p { color: var(--muted); margin: 10px 0 0; font-size: 15px; }
@@ -418,7 +418,21 @@ textarea#input::placeholder { color: var(--subtle); }
 dialog { border: 1px solid var(--line-strong); border-radius: var(--r-l); padding: 0; background: var(--raised); color: var(--fg); width: min(480px, calc(100vw - 32px)); box-shadow: var(--shadow-pop); }
 dialog[open] { animation: pop var(--d2) var(--ease) both; }
 dialog::backdrop { background: color-mix(in srgb, var(--bg) 60%, transparent); backdrop-filter: blur(4px); animation: fade var(--d2) var(--ease); }
+dialog.wide { width: min(620px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow-y: auto; }
 .form { display: flex; flex-direction: column; gap: 16px; padding: 26px; }
+.dd-title em { font-style: normal; color: var(--signal); }
+.dd-status { display: flex; align-items: center; gap: 9px; font: 500 12px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: var(--r-m); padding: 9px 12px; background: var(--bg); }
+.dd-status.good { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); background: var(--good-soft); }
+.dd-status.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 35%, transparent); background: var(--bad-soft); }
+.dd-theme { margin: 16px 0 0; font-size: 18px; color: var(--muted); letter-spacing: -.015em; }
+.dd-blocks { border-top: 1px solid var(--line); margin-top: 12px; }
+.dd-block { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.dd-block .num { font: 500 12px var(--mono); color: var(--subtle); padding-top: 3px; }
+.dd-block h3 { font-size: 17px; display: flex; align-items: baseline; gap: 10px; }
+.dd-block h3 .min { font: 500 11.5px var(--mono); color: var(--subtle); letter-spacing: 0; }
+.dd-block p { margin: 4px 0 0; color: var(--muted); font-size: 14.5px; line-height: 1.55; }
+#dd-body .empty { padding: 36px 16px 12px; }
+#dd-actions:empty { display: none; }
 .form-head { display: flex; justify-content: space-between; align-items: flex-start; }
 .form-head h2 { font-size: 26px; letter-spacing: -.04em; margin-top: 12px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -456,9 +470,17 @@ body.side-closed .edge-btn.left, body.chat-closed .edge-btn.right { opacity: 1; 
 body.side-closed .work-head, body.side-closed .page { padding-left: max(clamp(20px, 4vw, 56px), 64px); }
 body.chat-closed .work-head { padding-right: max(clamp(20px, 4vw, 56px), 64px); }
 
-/* theme switch: the new theme grows from the toggle and takes over the screen */
-::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-::view-transition-new(root) { z-index: 2; }
+/* theme switch: the new theme grows from the toggle and takes over the screen.
+   The clip animation is set here (not from JS) with fill-mode "both", so the new snapshot is
+   clipped from its first frame: no frame where the whole screen jumps to the new theme. */
+html.theming, html.theming *, html.theming *::before, html.theming *::after { transition: none !important; }
+::view-transition-old(root), ::view-transition-new(root) { mix-blend-mode: normal; }
+::view-transition-old(root) { animation: none; }
+::view-transition-new(root) { z-index: 2; animation: theme-reveal .75s cubic-bezier(.2, .7, .1, 1) both; }
+@keyframes theme-reveal {
+  from { clip-path: circle(0px at var(--vt-x, 50%) var(--vt-y, 50%)); }
+  to { clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 50%)); }
+}
 
 /* ---------------------------------------------------------------- responsive */
 @media (max-width: 1320px) { :root { --chat: 360px; } }
