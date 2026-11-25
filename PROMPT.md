@@ -1,5 +1,0 @@
-- Permita aumentar e diminuir o tamanho da sidebar do chat (tamanho minimo o tamanho atual)
-- Permita abrir e fechar o chat e tambem a sidebar da esquerda
-- A mudança de tema deve ser igual o do meu portfolio, não muda tudo de uma vez, o proximo tema vai tomando a tela.
-- O documento de resultado tambem deve ser gerado em ingles
-- Na sidebar do lado esquerdo quando eu tiver uma seção deixe apenas o quadradinho em laranja (sem pegar o risquinho, veja na imagem)
