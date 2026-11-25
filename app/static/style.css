@@ -84,14 +84,15 @@ h1, h2, h3 { letter-spacing: -.03em; font-weight: 600; margin: 0; }
   width: var(--side); flex: none; display: flex; flex-direction: column; padding: 28px 20px 22px;
   border-right: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(6px); z-index: 4;
 }
-.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--fg); margin-bottom: 44px; }
+.side-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 44px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--fg); min-width: 0; }
 .brand:hover { color: var(--fg); }
 .mark {
   position: relative; width: 40px; height: 40px; border: 1px solid var(--line-strong); border-radius: var(--r-m); flex: none;
   display: flex; align-items: center; justify-content: center; text-align: center; font: 700 13px/1 var(--font); letter-spacing: -.02em; background: var(--raised);
 }
 .mark::after { content: ""; position: absolute; right: 9px; bottom: 7px; width: 6px; height: 1.5px; background: var(--signal); }
-.brand .name { font-weight: 600; font-size: 17px; letter-spacing: -.02em; }
+.brand .name { font-weight: 600; font-size: 17px; letter-spacing: -.02em; white-space: nowrap; }
 .spine { position: relative; display: flex; flex-direction: column; gap: 4px; padding-left: 2px; }
 .spine::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--line); }
 .nav { position: relative; display: flex; align-items: center; gap: 14px; padding: 8px 0 8px 22px; text-decoration: none; color: var(--fg); font-size: 15.5px; transition: color var(--d1); }
@@ -101,7 +102,6 @@ h1, h2, h3 { letter-spacing: -.03em; font-weight: 600; margin: 0; }
 .nav:hover .node { border-color: var(--signal); }
 .nav.active .node { background: var(--signal); border-color: var(--signal); }
 .nav.active .num { color: var(--signal); }
-.nav.active::before { content: ""; position: absolute; left: -2px; top: 6px; bottom: 6px; width: 1px; background: var(--signal); transform-origin: top; animation: grow var(--d3) var(--ease); }
 .side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 14px; }
 .count { border: 1px solid var(--line); border-radius: var(--r-m); padding: 12px 14px; background: var(--raised); }
 .count b { display: block; font: 600 30px/1 var(--font); letter-spacing: -.04em; }
@@ -197,7 +197,7 @@ main.work { flex: 1; min-width: 0; height: 100vh; height: 100dvh; overflow: hidd
 .timer-txt { text-align: right; }
 .timer { display: block; font: 500 26px/1 var(--mono); letter-spacing: -.02em; }
 .timer-txt small { font: 500 11.5px var(--mono); color: var(--subtle); }
-.journey { display: flex; align-items: center; gap: 14px; margin: 34px 0 10px; font: 500 12px var(--mono); color: var(--subtle); }
+.journey { display: flex; align-items: center; gap: 14px; margin: 34px auto 10px; font: 500 12px var(--mono); color: var(--subtle); }
 .journey .track { flex: 1; height: 2px; background: var(--line); position: relative; overflow: hidden; }
 .journey .track span { position: absolute; inset: 0 auto 0 0; background: var(--signal); transform-origin: left; animation: grow 1s var(--ease) both .2s; }
 .blocks { border-top: 1px solid var(--line); margin-top: 26px; }
@@ -435,6 +435,31 @@ dialog::backdrop { background: color-mix(in srgb, var(--bg) 60%, transparent); b
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 #toast.bad { background: var(--bad); color: #fff; }
 
+/* ---------------------------------------------------------------- show / hide / resize panels */
+.side { transition: margin-left var(--d3) var(--ease); }
+.chat { position: relative; transition: margin-right var(--d3) var(--ease); }
+body.side-closed .side { margin-left: calc(-1 * var(--side)); }
+body.chat-closed .chat { margin-right: calc(-1 * var(--chat)); }
+body.resizing, body.resizing * { cursor: col-resize !important; user-select: none !important; }
+body.resizing .side, body.resizing .chat { transition: none; }
+.chat-resize { position: absolute; left: -4px; top: 0; bottom: 0; width: 8px; cursor: col-resize; z-index: 7; }
+.chat-resize::after { content: ""; position: absolute; left: 3px; top: 0; bottom: 0; width: 2px; background: var(--signal); opacity: 0; transition: opacity var(--d2) var(--ease); }
+.chat-resize:hover::after, body.resizing .chat-resize::after { opacity: 1; }
+.edge-btn {
+  position: fixed; top: 16px; z-index: 8; width: 36px; height: 36px; border-radius: var(--r-m); border: 1px solid var(--line-strong);
+  background: var(--raised); color: var(--muted); display: grid; place-items: center; opacity: 0; pointer-events: none; transform: scale(.8);
+  transition: opacity var(--d2) var(--ease), transform var(--d2) var(--ease), color var(--d1), border-color var(--d1);
+}
+.edge-btn:hover { color: var(--signal); border-color: var(--signal); }
+.edge-btn.left { left: 14px; } .edge-btn.right { right: 14px; }
+body.side-closed .edge-btn.left, body.chat-closed .edge-btn.right { opacity: 1; pointer-events: auto; transform: none; transition-delay: .2s; }
+body.side-closed .work-head, body.side-closed .page { padding-left: max(clamp(20px, 4vw, 56px), 64px); }
+body.chat-closed .work-head { padding-right: max(clamp(20px, 4vw, 56px), 64px); }
+
+/* theme switch: the new theme grows from the toggle and takes over the screen */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) { z-index: 2; }
+
 /* ---------------------------------------------------------------- responsive */
 @media (max-width: 1320px) { :root { --chat: 360px; } }
 @media (max-width: 1180px) {
@@ -443,12 +468,11 @@ dialog::backdrop { background: color-mix(in srgb, var(--bg) 60%, transparent); b
   .brand .name, .nav .lbl, .count, .side-row a span { display: none; }
   .nav { flex-direction: column; gap: 5px !important; }
   .nav .num { font-size: 10.5px; }
-  .brand { margin-bottom: 36px; }
+  .side-top { margin-bottom: 36px; flex-direction: column; gap: 12px; }
   .spine { padding-left: 0; align-items: center; }
   .spine::before { display: none; }
   .nav { padding: 10px; justify-content: center; }
   .nav .node { position: static; margin: 0; width: 10px; height: 10px; }
-  .nav.active::before { display: none; }
   .nav[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: calc(100% + 8px); top: 50%; transform: translateY(-50%); background: var(--fg); color: var(--bg); font: 500 11.5px var(--mono); padding: 4px 8px; border-radius: var(--r-s); white-space: nowrap; }
   .side-row { flex-direction: column; gap: 8px; }
   .side-row > div { flex-direction: column; }
@@ -457,6 +481,9 @@ dialog::backdrop { background: color-mix(in srgb, var(--bg) 60%, transparent); b
   .chat { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); transform: translateX(100%); transition: transform var(--d3) var(--ease); box-shadow: var(--shadow-pop); }
   body.chat-open .chat { transform: none; }
   #btn-chat-close { display: grid; }
+  #btn-chat-hide, .chat-resize, .edge-btn.right { display: none; }
+  body.chat-closed .chat { margin-right: 0; }
+  body.chat-closed .work-head { padding-right: clamp(20px, 4vw, 56px); }
   .chat-fab { display: grid; place-items: center; position: fixed; right: 18px; bottom: 18px; width: 54px; height: 54px; border-radius: var(--r-l); border: 1px solid var(--signal); background: var(--signal); color: var(--signal-ink); z-index: 6; box-shadow: var(--shadow-pop); transition: transform var(--d2) var(--ease); }
   .chat-fab:active { transform: scale(.94); }
   body.chat-open .chat-fab { transform: scale(0); }
@@ -468,7 +495,9 @@ dialog::backdrop { background: color-mix(in srgb, var(--bg) 60%, transparent); b
 @media (max-width: 640px) {
   body { flex-direction: column-reverse; }
   .side { width: 100%; height: 60px; flex-direction: row; align-items: center; padding: 0 12px env(safe-area-inset-bottom); border-right: 0; border-top: 1px solid var(--line); justify-content: space-between; }
-  .brand, .side-foot .count { display: none; }
+  .side-top, .side-foot .count, .edge-btn { display: none; }
+  body.side-closed .side { margin-left: 0; }
+  body.side-closed .work-head, body.side-closed .page { padding-left: clamp(20px, 4vw, 56px); }
   .spine { flex-direction: row; gap: 4px; }
   .nav .lbl { display: inline; font-size: 13px; }
   .nav { padding: 8px 8px; gap: 8px; }

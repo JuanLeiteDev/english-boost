@@ -5,6 +5,13 @@ Cada link foi testado (HTTP 200) na data indicada. Para adicionar recursos novos
 
 ## Listening
 
+Direct Cambridge practice tests (links checked on 2026-11-25):
+
+| Test | Level | Use |
+|---|---|---|
+| [A2 Key listening test](https://ceq.inspera.com/player/?assessmentRunId=539335040&context=exam) | A2 | Direct test link. For C0, do Part 1. |
+| [B1 Preliminary listening test](https://ceq.inspera.com/player/?assessmentRunId=539335544&context=exam) | B1 | Direct test link. For C0, do Part 1. |
+
 | Recurso | Nível | Fase | Para quê |
 |---|---|---|---|
 | 🇺🇸 [VOA Learning English: *Let's Learn English*](https://learningenglish.voanews.com/p/5644.html) | A1–A2+ | 1 | Curso em vídeo completo, com transcrições; listening diário das semanas 1–4 |

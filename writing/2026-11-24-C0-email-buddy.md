@@ -1,6 +1,6 @@
-# C0: email ao buddy da Howest (2026-11-24)
+# C0 · Email to your Howest buddy (2026-11-24)
 
-## Texto original
+## Your text
 
 Hi buddy, how are you?
 My name is Juan Leite, I'm 20 years old and I will be your new buddy for this semester.
@@ -12,14 +12,18 @@ So, I'm going to stay on Kortrijk where you live now. What do you think abot the
 
 Thanks man, see you!
 
-## Feedback do C0
+## Feedback
 
-73 palavras; pedido: 80–100. Rubrica B1: conteúdo 3/5, eficácia comunicativa 3/5, organização 3/5, língua 2/5 (avaliação pelo próprio agente, menos independente).
+**73 words** (task: 80–100) · Content 3/5 · Task 3/5 · Organisation 3/5 · Language 2/5
 
-1. "I will be your new buddy" inverte os papéis. O destinatário será o buddy do Juan: "you'll be my buddy".
-2. "I'm goin to study AI Engeneer at the Howest" → "I'm going to study AI engineering at Howest". Curso/área: *engineering*; não se usa *the* antes de Howest.
-3. "because I'm on Erasmus mobility" diz por que vai para a Bélgica, mas falta dizer por que escolheu IA. Acrescentar uma razão pessoal verdadeira.
-4. "stay on Kortrijk" → "stay in Kortrijk"; cidades usam *in*.
-5. "abot the accomodation" → "about the accommodation". A pergunta pode ser mais específica: "Do you know of any good student accommodation?"
+1. *I will be your new buddy* → **you'll be my buddy** (they help you).
+2. *I'm goin to study AI Engeneer at the Howest* → I'm **going** to study AI **engineering** at Howest.
+3. Add **why** you chose AI (one true reason).
+4. *stay on Kortrijk* → stay **in** Kortrijk (cities: *in*).
+5. *abot the accomodation* → **about** the **accommodation**. Better: *Do you know any good student housing?*
 
-Falta indicar de onde vem e reescrever o email com 80–100 palavras.
+**Missing:** where you are from.
+
+## Your task
+
+Rewrite the email with 80–100 words. Use the 5 corrections and say where you are from.

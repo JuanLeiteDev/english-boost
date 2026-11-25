@@ -341,7 +341,7 @@ def progress_payload() -> dict:
     while d.isoformat() in by_day:
         streak, d = streak + 1, d - dt.timedelta(1)
     planned = sum(x["target"] for x in days if x["date"] <= today.isoformat())
-    results = [p.relative_to(ROOT).as_posix() for p in sorted((ROOT / "assessments").glob("*resultado*.md"))]
+    results = [p.relative_to(ROOT).as_posix() for p in sorted((ROOT / "assessments").glob("*result*.md"))]
     reviews = [p.relative_to(ROOT).as_posix() for p in sorted((ROOT / "progress" / "weekly").glob("*.md"))]
     return {
         "minutes": sum(by_day.values()), "planned": planned, "streak": streak, "sessions": len(by_day),

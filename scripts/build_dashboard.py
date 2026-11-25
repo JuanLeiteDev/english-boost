@@ -3,7 +3,7 @@
 
 Usage:  python3 scripts/build_dashboard.py [--today YYYY-MM-DD]
 Reads:  plan/grammar-spine.md, plan/weeks/*.md, progress/log.md,
-        progress/error-log.md, assessments/*resultado.md
+        progress/error-log.md, assessments/*result*.md
 """
 from __future__ import annotations
 
@@ -193,9 +193,9 @@ def build(today: dt.date) -> str:
         for r in sorted(log, key=lambda r: r["date"], reverse=True)[:7]) or \
         '<tr><td colspan="5" class="muted">Nenhuma sessão registada ainda. A primeira é o diagnóstico C0 (2026-11-25).</td></tr>'
 
-    results = sorted((ROOT / "assessments").glob("*resultado*.md"))
+    results = sorted((ROOT / "assessments").glob("*result*.md"))
     res_html = "".join(f"<li><code>{p.relative_to(ROOT).as_posix()}</code></li>" for p in results) or \
-        '<li class="muted">Ainda sem resultados de checkpoints.</li>'
+        '<li class="muted">No checkpoint results yet.</li>'
     cp_html = "".join(
         f'<li class="{"past" if c < today else ""}"><b>{n}</b> {c.isoformat()}</li>' for c, n in CHECKPOINTS.items())
 

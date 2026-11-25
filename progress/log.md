@@ -5,3 +5,4 @@ Uma linha por sessão, escrita pelo `daily-study-planner` (modo "fechar sessão"
 | Data | Min | Gramática | % | Listening | Output | Palavras novas | Notas |
 |---|---|---|---|---|---|---|---|
 | 2026-11-24 | 57 |  | 0% | — | checkpoint | 8 |  |
+| 2026-11-25 | 66 |  | 71% | Cambridge A2 Key and B1 Preliminary, Part 1 | checkpoint | 8 |  |

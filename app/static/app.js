@@ -84,9 +84,68 @@
     $("#btn-theme").title = dark ? "Light theme" : "Dark theme";
   }
   function toggleTheme() {
-    document.documentElement.dataset.theme = isDark() ? "light" : "dark";
-    store.set("theme", document.documentElement.dataset.theme);
-    paintThemeBtn();
+    const next = isDark() ? "light" : "dark";
+    const apply = () => { document.documentElement.dataset.theme = next; store.set("theme", next); paintThemeBtn(); };
+    if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) return apply();
+    // the new theme grows as a circle from the button until it covers the whole screen
+    const r = $("#btn-theme").getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    const vt = document.startViewTransition(apply);
+    vt.ready.then(() => document.documentElement.animate(
+      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${end}px at ${x}px ${y}px)`] },
+      { duration: 750, easing: "cubic-bezier(.2,.7,.1,1)", pseudoElement: "::view-transition-new(root)" },
+    )).catch(() => {});
+  }
+
+  /* layout: show/hide sidebar and chat, resize the chat */
+  const CHAT_MIN = () => (innerWidth <= 1320 ? 360 : 400);
+  const CHAT_MAX = () => Math.max(CHAT_MIN(), Math.min(760, Math.round(innerWidth * 0.55)));
+  function setChatWidth(w, save = true) {
+    if (!w) { document.documentElement.style.removeProperty("--chat"); if (save) store.set("chatW", null); return; }
+    const px = Math.round(Math.max(CHAT_MIN(), Math.min(CHAT_MAX(), w)));
+    document.documentElement.style.setProperty("--chat", `${px}px`);
+    if (save) store.set("chatW", px);
+  }
+  function setLayout(key, closed) {
+    document.body.classList.toggle(key, closed);
+    store.set(key, closed);
+    setTimeout(refreshThumbs, 520);
+  }
+  const toggleSide = () => setLayout("side-closed", !document.body.classList.contains("side-closed"));
+  const toggleChatPanel = () => setLayout("chat-closed", !document.body.classList.contains("chat-closed"));
+  function initLayout() {
+    if (store.get("side-closed", false)) document.body.classList.add("side-closed");
+    if (store.get("chat-closed", false)) document.body.classList.add("chat-closed");
+    const w = store.get("chatW", null);
+    if (w) setChatWidth(w, false);
+    $("#btn-side-hide").onclick = toggleSide;
+    $("#btn-side-show").onclick = toggleSide;
+    $("#btn-chat-hide").onclick = toggleChatPanel;
+    $("#btn-chat-show").onclick = toggleChatPanel;
+    const handle = $("#chat-resize");
+    handle.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      document.body.classList.add("resizing");
+      const move = (ev) => setChatWidth(innerWidth - ev.clientX, false);
+      const up = (ev) => {
+        handle.removeEventListener("pointermove", move);
+        handle.removeEventListener("pointerup", up);
+        document.body.classList.remove("resizing");
+        setChatWidth(innerWidth - ev.clientX);
+        refreshThumbs();
+      };
+      handle.addEventListener("pointermove", move);
+      handle.addEventListener("pointerup", up);
+    });
+    handle.addEventListener("dblclick", () => { setChatWidth(null); refreshThumbs(); });
+    window.addEventListener("resize", () => { const v = store.get("chatW", null); if (v) setChatWidth(v, false); });
+    document.addEventListener("keydown", (e) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+      if (e.key.toLowerCase() === "b") { e.preventDefault(); toggleSide(); }
+      if (e.key.toLowerCase() === "j") { e.preventDefault(); toggleChatPanel(); }
+    });
   }
 
   /* ---------------- router ---------------- */
@@ -266,6 +325,7 @@
     if (!text || S.running) return;
     $("#input").value = ""; autoGrow();
     document.body.classList.add("chat-open");
+    if (document.body.classList.contains("chat-closed")) setLayout("chat-closed", false);  // show the reply
     const box = $("#msgs");
     $(".welcome", box)?.remove();
     box.appendChild(msgEl({ role: "user", text }));
@@ -800,6 +860,7 @@
 
   async function init() {
     paintThemeBtn();
+    initLayout();
     await loadState();
     $$("#agent-seg button").forEach((b) => (b.onclick = () => setAgent(b.dataset.agent)));
     $("#btn-send").onclick = () => (S.running ? api("/api/chat/stop", { agent: S.agent }) : send());
