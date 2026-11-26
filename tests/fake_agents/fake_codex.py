@@ -11,7 +11,13 @@ import time
 import uuid
 
 args = sys.argv[1:]
-prompt = sys.stdin.read() if args and args[-1] == "-" else (args[-1] if args else "")
+if args[:2] == ["login", "status"]:  # login check; FAKE_LOGGED_OUT=codex simulates a logged-out CLI (not logged)
+    if "codex" in os.environ.get("FAKE_LOGGED_OUT", ""):
+        sys.stderr.write("Not logged in\n")
+        sys.exit(1)
+    sys.stderr.write("Logged in using ChatGPT\n")
+    sys.exit(0)
+prompt =sys.stdin.read() if args and args[-1] == "-" else (args[-1] if args else "")
 log = os.environ.get("FAKE_LOG")
 if log:
     with open(log, "a", encoding="utf-8") as f:

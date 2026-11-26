@@ -45,6 +45,7 @@ Say "ready" to start block 1.
    - **Grammar:** the learner does the unit file without help. Ask for their answers, then mark them against `materials/grammar/answers/<ID>.md` and give the % score. For each wrong answer, give a hint first and let them retry once (retrieval beats re-reading). If they are stuck on a concept, offer `teach-me` / `tutor` for a 10-minute focused explanation.
    - **Listening:** state the resource and the 5-step cycle. You can't hear the audio, so ask for their answers or a short summary. Check them against the transcript when one exists.
    - **Speaking:** `speaking-coach`. **Writing:** `english-examiner` in quick-feedback mode.
+   - **In the web app:** when the learner finishes a block, tick it in today's plan with a marker on its own line: `[[done:srs]]`, `[[done:grammar]]`, `[[done:listening]]` or `[[done:output]]`. Only tick a block the learner really did. They can still tick or untick blocks by hand.
 5. Keep time honest. If a block runs long, cut the bonus, never the output block. Output is the strand learners skip most often, and the one this learner needs most.
 
 ## Mode 2: Close the session

@@ -72,6 +72,35 @@ class TestGrammarUnits(unittest.TestCase):
             self.assertFalse([n for n, v in key.items() if not v.strip()], uid)
 
 
+class TestPracticeSets(unittest.TestCase):
+    """Sets made by practice-builder: every scored item has a key line, numbered 1..N, keys stay hidden in answers/."""
+    DIR = REPO / "materials" / "generated" / "practice"
+
+    def test_practice_sets_match_their_keys(self):
+        for f in sorted(self.DIR.glob("*.md")):
+            pid = f.stem
+            self.assertRegex(pid, r"^\d{4}-\d\d-\d\d-[a-z0-9]+(-[a-z0-9]+)*$", pid)
+            keyf = self.DIR / "answers" / f"{pid}.md"
+            self.assertTrue(keyf.is_file(), f"{pid}: missing answer key")
+            scored, in_ex, in_prod, fence = set(), False, False, False
+            for line in f.read_text(encoding="utf-8").splitlines():
+                if line.startswith("```"):
+                    fence = not fence
+                if fence:
+                    continue
+                if line.startswith("## "):
+                    in_ex, in_prod = bool(re.search(r"practi|exerc", line, re.I)), False
+                elif line.startswith("### ") and in_ex:
+                    in_prod = bool(re.search(r"your turn|produ", line, re.I))
+                elif in_ex and not in_prod:
+                    m = re.match(r"^(\d+)\.\s+", line)
+                    if m:
+                        scored.add(int(m.group(1)))
+            key = {int(m.group(1)) for m in re.finditer(r"^\s*(\d+)\.\s+\S", keyf.read_text(encoding="utf-8"), re.M)}
+            self.assertEqual(scored, key, f"{pid}: items and key differ")
+            self.assertEqual(sorted(scored), list(range(1, len(scored) + 1)), f"{pid}: numbering gaps")
+
+
 class TestPlan(unittest.TestCase):
     def test_grammar_spine(self):
         spine = bd.load_spine()
@@ -127,7 +156,7 @@ class TestSkills(unittest.TestCase):
 
     def test_all_skills_valid_for_claude_and_codex(self):
         skills = sorted((REPO / ".agents" / "skills").glob("*/SKILL.md"))
-        self.assertEqual(len(skills), 21)
+        self.assertEqual(len(skills), 22)
         for s in skills:
             keys, f = self.frontmatter(s)
             self.assertEqual(f.get("name"), s.parent.name, s)
@@ -136,7 +165,7 @@ class TestSkills(unittest.TestCase):
 
     def test_custom_skills_documented(self):
         agents = (REPO / "AGENTS.md").read_text(encoding="utf-8")
-        for name in ("daily-study-planner", "english-examiner", "speaking-coach"):
+        for name in ("daily-study-planner", "english-examiner", "speaking-coach", "practice-builder"):
             self.assertIn(name, agents)
             evals = REPO / ".agents" / "skills" / name / "evals" / "evals.json"
             self.assertTrue(json.loads(evals.read_text(encoding="utf-8"))["evals"])

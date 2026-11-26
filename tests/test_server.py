@@ -162,6 +162,55 @@ class TestWrites(ServerTestCase):
         self.srv.post("/api/settings", {"codex_model": "gpt-6-sol", "claude_model": ""})
 
 
+class TestPractice(ServerTestCase):
+    PID = "2026-11-26-past-present-housing"
+
+    def write_set(self, pid=PID):
+        d = self.root / "materials" / "generated" / "practice"
+        (d / "answers").mkdir(parents=True, exist_ok=True)
+        (d / f"{pid}.md").write_text("# Past & present · Housing\n\n*grammar · A2+ · 10 min*\n\n## 2. Practice · Grammar\n"
+                                     "1. My flatmate ___ (cook) every evening.\n2. Yesterday I ___ home. (go / went / goes)\n",
+                                     encoding="utf-8")
+        (d / "answers" / f"{pid}.md").write_text("# Answer key\n\n1. cooks\n2. went\n", encoding="utf-8")
+
+    def test_list_open_key_and_result(self):
+        self.write_set()
+        sets = self.srv.get_json("/api/practice/list")
+        ids = [s["id"] for s in sets]
+        self.assertIn(self.PID, ids)
+        self.assertEqual(ids, sorted(ids, reverse=True))  # newest first
+        s = sets[ids.index(self.PID)]
+        self.assertEqual(s["title"], "Past & present · Housing")
+        self.assertEqual(s["meta"], "grammar · A2+ · 10 min")
+        self.assertIsNone(s["pct"])
+        u = self.srv.get_json(f"/api/unit?id={self.PID}")
+        self.assertTrue(u["practice"] and u["has_key"])
+        self.assertEqual(self.srv.get_json(f"/api/unit/key?id={self.PID}")["key"], {"1": "cooks", "2": "went"})
+        spine_before = (self.root / "plan" / "grammar-spine.md").read_text(encoding="utf-8")
+        st, body = self.srv.post("/api/unit/result", {"id": self.PID, "pct": 50, "score": 1, "total": 2, "items": [{"n": "1"}]})
+        self.assertEqual((st, body["status"]), (200, "practice"))
+        self.assertEqual((self.root / "plan" / "grammar-spine.md").read_text(encoding="utf-8"), spine_before)  # spine untouched
+        self.assertEqual(json.loads((self.root / "progress" / "exercises" / f"practice-{self.PID}.json").read_text())["pct"], 50)
+        self.assertEqual(next(x for x in self.srv.get_json("/api/practice/list") if x["id"] == self.PID)["pct"], 50)
+
+    def test_choices_saved_for_again(self):
+        self.write_set("2026-11-27-speaking-bank")
+        st, _ = self.srv.post("/api/practice/choices", {"id": "2026-11-27-speaking-bank", "choices": {"skills": ["speaking"]}})
+        self.assertEqual(st, 200)
+        s = next(x for x in self.srv.get_json("/api/practice/list") if x["id"] == "2026-11-27-speaking-bank")
+        self.assertEqual(s["choices"], {"skills": ["speaking"]})
+        self.assertEqual(self.srv.post("/api/practice/choices", {"id": "2026-11-27-speaking-bank", "choices": "x"})[0], 400)
+        self.assertEqual(self.srv.post("/api/practice/choices", {"id": "2026-01-01-missing", "choices": {}})[0], 404)
+
+    def test_bad_ids_and_hidden_key(self):
+        self.write_set()
+        for bad in ("../../AGENTS", "2026-11-26-Bad_ID", "2026-11-26-", "x" * 80):
+            self.assertEqual(self.srv.get(f"/api/unit?id={bad}")[0], 404, bad)
+        self.assertEqual(self.srv.post("/api/unit/result", {"id": "2026-01-01-nope", "pct": 10})[0], 404)
+        st, _ = self.srv.get(f"/api/doc?path=materials/generated/practice/answers/{self.PID}.md")
+        self.assertNotEqual(st, 200)  # answer keys never open as documents
+
+
 class TestChat(ServerTestCase):
     def test_claude_streams_text_tools_and_markers(self):
         self.reset("claude")
@@ -298,6 +347,17 @@ class TestTimeout(ServerTestCase):
         self.assertLess(time.time() - t, 15)
         self.assertTrue(any("time limit" in e for e in kinds(ev, "error")), ev)
         self.assertFalse(self.srv.get_json("/api/chat/history?agent=codex")["running"])
+
+
+class TestLoggedOut(ServerTestCase):
+    env = {"FAKE_LOGGED_OUT": "claude"}
+
+    def test_state_reports_login(self):
+        st = self.srv.get_json("/api/state")
+        self.assertTrue(st["agents"]["claude"] and st["agents"]["codex"])  # both installed
+        self.assertIs(st["auth"]["claude"], False)  # …but only Codex is logged in
+        self.assertIs(st["auth"]["codex"], True)
+        self.assertFalse(any(c["argv"][:1] in (["auth"], ["login"]) for c in self.srv.calls()))
 
 
 class TestMissingAgents(ServerTestCase):

@@ -98,6 +98,8 @@ STYLE: be brief and practical. Usually under 120 words: one short explanation, o
 Follow AGENTS.md and use the project skills.
 The app has a main workspace. To open material there, write a marker on its own line: [[open:today]] (today's plan), [[open:P1-02]] (interactive grammar unit), [[open:doc:path/file.md]] (a project document) or [[open:url:https://...]] (external link).
 When Juan asks for today's study, open [[open:today]] and the grammar unit of the day, then guide him block by block.
+When Juan finishes a block of today's plan, mark it as done with a marker on its own line: [[done:grammar]], [[done:listening]], [[done:output]] (speaking or writing) or [[done:srs]] (vocabulary). Only mark a block he really did.
+When Juan asks for a practice set from the Practice page, use the practice-builder skill, then open the new set with [[open:practice:<id>]].
 The app checks grammar exercises, closes sessions (log, spine, dashboard) and commits with its own buttons: do not do these yourself and never ask Juan to run terminal commands. Only update progress/error-log.md when you see recurring errors.
 Every file you write for Juan (feedback, results, plans, materials) must be in simple English and short: essentials only."""
 
@@ -241,6 +243,40 @@ def launcher(path: str) -> list[str]:
     return [sys.executable, path] if path.lower().endswith(".py") else [path]
 
 
+def _auth_check(agent: str, binp: str) -> bool | None:
+    """Is the CLI logged in? True / False, or None when unknown (old CLI without the command, timeout)."""
+    args = ["auth", "status"] if agent == "claude" else ["login", "status"]
+    kw = {"creationflags": subprocess.CREATE_NO_WINDOW} if IS_WIN else {}
+    try:
+        r = subprocess.run(launcher(binp) + args, cwd=ROOT, stdin=subprocess.DEVNULL, capture_output=True,
+                           text=True, encoding="utf-8", errors="replace", timeout=20, **kw)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if agent == "claude":  # `claude auth status` prints JSON with "loggedIn"
+        try:
+            v = json.loads(r.stdout).get("loggedIn")
+        except (ValueError, AttributeError):
+            return None
+        return v if isinstance(v, bool) else None
+    out = f"{r.stdout}\n{r.stderr}"  # `codex login status`: "Logged in using …" / "Not logged in"
+    if re.search(r"\bnot logged in\b", out, re.I):
+        return False
+    return True if re.search(r"\blogged in\b", out, re.I) else None
+
+
+def agent_auth(agent: str, binp: str | None) -> bool | None:
+    """Cached login state: re-checked every 60 s when logged in, every 8 s when not (so a new login shows fast)."""
+    if not binp:
+        return False
+    now = time.monotonic()
+    hit = _CACHE.get(f"auth_{agent}")
+    if hit and hit[1][0] == binp and now - hit[0] < (60 if hit[1][1] else 8):
+        return hit[1][1]
+    val = _auth_check(agent, binp)
+    _CACHE[f"auth_{agent}"] = (now, (binp, val))
+    return val
+
+
 def codex_models() -> list[str]:
     home = Path(os.environ.get("CODEX_HOME") or Path.home() / ".codex")
     data = jload(home / "models_cache.json", {})
@@ -271,6 +307,62 @@ def unit_path(uid: str, answers: bool = False) -> Path | None:
         return None
     p = ROOT / "materials" / "grammar" / ("answers" if answers else "") / f"{uid}.md"
     return p if p.is_file() else None
+
+
+# Practice sets: made on demand by the tutor (practice-builder skill) from the Practice page.
+PRACTICE = ROOT / "materials" / "generated" / "practice"
+PRACTICE_ID = re.compile(r"\d{4}-\d\d-\d\d-[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
+def is_practice_id(pid: str) -> bool:
+    return bool(pid) and len(pid) <= 72 and bool(PRACTICE_ID.fullmatch(pid))
+
+
+def practice_path(pid: str, answers: bool = False) -> Path | None:
+    if not is_practice_id(pid):
+        return None
+    p = PRACTICE / ("answers" if answers else "") / f"{pid}.md"
+    return p if p.is_file() else None
+
+
+def exercise_path(xid: str, answers: bool = False) -> Path | None:
+    """A grammar unit (P1-02) or a practice set (2026-11-26-past-simple): both use the same format."""
+    return unit_path(xid, answers) or practice_path(xid, answers)
+
+
+def parse_key(path: Path) -> dict:
+    key = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^\s*(\d+)\.\s+(.+)$", line)
+        if m and m.group(1) not in key:
+            key[m.group(1)] = m.group(2).strip()
+    return key
+
+
+def practice_result_path(pid: str) -> Path:
+    return ROOT / "progress" / "exercises" / f"practice-{pid}.json"
+
+
+def practice_list() -> list[dict]:
+    """Practice sets, newest first: title, meta line, the learner's choices and the last score."""
+    out = []
+    for f in PRACTICE.glob("*.md") if PRACTICE.is_dir() else []:
+        if not is_practice_id(f.stem):
+            continue
+        title, meta = f.stem, ""
+        for line in f.read_text(encoding="utf-8").splitlines()[:8]:
+            if line.startswith("# ") and title == f.stem:
+                title = line[2:].strip()
+            elif line.startswith("*") and not meta:
+                meta = line.strip("* ").strip()
+        res = jload(practice_result_path(f.stem), {})
+        out.append({"id": f.stem, "date": f.stem[:10], "title": title, "meta": meta,
+                    "choices": jload(PRACTICE / f"{f.stem}.json", None), "has_key": bool(practice_path(f.stem, True)),
+                    "pct": res.get("pct"), "done_on": res.get("date"), "mtime": f.stat().st_mtime})
+    out.sort(key=lambda x: (x["date"], x["mtime"]), reverse=True)
+    for x in out:
+        x.pop("mtime")
+    return out
 
 
 def listening_link(text: str) -> str | None:
@@ -319,6 +411,7 @@ def state_payload() -> dict:
         "units_done": sum(1 for u in spine if u["status"] in ("done", "ok")),
         "units_total": len(spine),
         "agents": {"claude": bool(claude), "codex": bool(codex)}, "stt": stt_available(),
+        "auth": {"claude": agent_auth("claude", claude), "codex": agent_auth("codex", codex)},
         "paths": {"claude": claude or "", "codex": codex or ""}, "os": os.name, "env": ENV_ID,
         "settings": settings(), "codex_models": cached("codex_models", 60, codex_models),
     }
@@ -812,6 +905,7 @@ def run_agent(agent: str, text: str, emit) -> None:
             conv["messages"].append(reply)
         conv["gen"] = gen
         save_chat(agent, conv, only_if_gen=gen)
+        _CACHE.pop(f"auth_{agent}", None)  # a failed turn is often a lost login: re-check on the next /api/state
         release(agent)
         emit({"t": "done", "session": conv.get("session")})
 
@@ -945,21 +1039,19 @@ class Handler(BaseHTTPRequestHandler):
             for x in units:
                 x["exists"] = bool(unit_path(x["id"]))
             return self._json(units)
-        if p == "/api/unit":
-            f = unit_path(q.get("id", ""))
+        if p == "/api/unit":  # a grammar unit or a practice set
+            f = exercise_path(q.get("id", ""))
             if not f:
                 return self._json({"error": "missing"}, 404)
-            return self._json({"id": q["id"], "md": f.read_text(encoding="utf-8"), "has_key": bool(unit_path(q["id"], True))})
+            return self._json({"id": q["id"], "md": f.read_text(encoding="utf-8"), "has_key": bool(exercise_path(q["id"], True)),
+                               "practice": is_practice_id(q["id"])})
         if p == "/api/unit/key":
-            f = unit_path(q.get("id", ""), answers=True)
+            f = exercise_path(q.get("id", ""), answers=True)
             if not f:
                 return self._json({"error": "missing"}, 404)
-            key = {}
-            for line in f.read_text(encoding="utf-8").splitlines():
-                m = re.match(r"^\s*(\d+)\.\s+(.+)$", line)
-                if m and m.group(1) not in key:
-                    key[m.group(1)] = m.group(2).strip()
-            return self._json({"key": key})
+            return self._json({"key": parse_key(f)})
+        if p == "/api/practice/list":
+            return self._json(practice_list())
         if p == "/api/doc":
             f = safe_doc(q.get("path", ""))
             if not f:
@@ -1049,6 +1141,28 @@ class Handler(BaseHTTPRequestHandler):
                 raise BadRequest("invalid agent")
             stop_agent(agent)
             reset_chat(agent)
+            return self._json({"ok": True})
+        if p == "/api/unit/result" and is_practice_id(str(d.get("id", ""))):
+            pid = str(d["id"])  # practice sets never touch the grammar spine
+            if not practice_path(pid):
+                return self._json({"error": "missing"}, 404)
+            pct = to_int(d.get("pct"), "percentage", 0, 100, None)
+            if pct is None:
+                raise BadRequest("missing percentage")
+            items = d.get("items") if isinstance(d.get("items"), list) else []
+            out = practice_result_path(pid)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            jsave(out, {"id": pid, "date": dt.date.today().isoformat(), "pct": pct,
+                        "score": d.get("score"), "total": d.get("total"), "items": items[:200]})
+            return self._json({"ok": True, "status": "practice"})
+        if p == "/api/practice/choices":  # what the learner picked in the Practice wizard ("Again" reuses it)
+            pid = str(d.get("id", ""))
+            if not practice_path(pid):
+                return self._json({"error": "missing"}, 404)
+            ch = d.get("choices")
+            if not isinstance(ch, dict) or len(json.dumps(ch)) > 8000:
+                raise BadRequest("invalid choices")
+            jsave(PRACTICE / f"{pid}.json", ch)
             return self._json({"ok": True})
         if p == "/api/unit/result":
             uid = str(d.get("id", ""))

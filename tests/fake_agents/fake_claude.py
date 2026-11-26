@@ -12,6 +12,10 @@ import time
 import uuid
 
 args = sys.argv[1:]
+if args[:2] == ["auth", "status"]:  # login check; FAKE_LOGGED_OUT=claude simulates a logged-out CLI (not logged)
+    out_ = "claude" not in os.environ.get("FAKE_LOGGED_OUT", "")
+    print(json.dumps({"loggedIn": out_, "authMethod": "claude.ai" if out_ else "none"}))
+    sys.exit(0 if out_ else 1)
 prompt = sys.stdin.read()
 log = os.environ.get("FAKE_LOG")
 if log:

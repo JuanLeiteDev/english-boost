@@ -15,6 +15,47 @@ for (const f of fs.readdirSync(dir).filter((x) => /^P[12]-\d\d\.md$/.test(x))) {
   KEYS[f.replace(".md", "")] = k;
 }
 
+// Item text of each exercise (what the app passes as the prompt), from the "Practice" section of each unit.
+let fail = 0;
+const PROMPTS = {};
+for (const u of Object.keys(KEYS)) {
+  const q = {};
+  let inEx = false;
+  for (const line of fs.readFileSync(path.join(dir, "..", `${u}.md`), "utf8").split(/\r?\n/)) {
+    if (/^## /.test(line)) inEx = /practi|exerc/i.test(line);
+    const m = inEx && line.match(/^\s*(\d+)\.\s+(.+)$/);
+    if (m && !(m[1] in q)) q[m[1]] = m[2].trim();
+  }
+  PROMPTS[u] = q;
+}
+
+// Full sentences instead of only the missing word: [unit, item, answer, expected result].
+const full = [
+  ["P1-02", "9", "My flatmate cooks every evening.", true], ["P1-02", "9", "my flatmate cooks every evening", true],
+  ["P1-02", "9", "My flatmate cook every evening.", false], ["P1-02", "9", "My flatmate cooks every morning.", false],
+  ["P1-02", "14", "We go to the gym on Fridays.", true], ["P1-02", "14", "We goes to the gym on Fridays.", false],
+  ["P1-02", "11", "Juan studies AI Engineering.", true], ["P1-02", "16", "This algorithm tries all possible combinations.", true],
+  ["P1-02", "17", "My friend lives near the campus.", true], ["P1-02", "17", "My friend live near the campus.", false],
+  ["P1-02", "20", "The library has a lot of computers.", true], ["P1-02", "19", "He watches Netflix every night.", true],
+  ["P1-01", "1", "I am from Portugal.", true], ["P1-01", "1", "I'm from Portugal", true], ["P1-01", "1", "I is from Portugal.", false],
+  ["P1-01", "4", "You aren't late.", true], ["P1-01", "4", "You are not late. The class starts at 9.", true], ["P1-01", "4", "You are late.", false],
+  ["P1-01", "13", "Her course is Digital Design.", true], ["P1-01", "13", "This is Marta. Her course is Digital Design.", true],
+  ["P1-01", "13", "His course is Digital Design.", false],
+  ["P1-03", "15", "Are you a student here?", true], ["P1-03", "15", "Do you a student here?", false],
+  ["P1-03", "20", "He doesn't like coffee.", true], ["P1-03", "20", "He don't like coffee.", false],
+  ["P1-05", "1", "Where do you live?", true], ["P1-05", "1", "Where do you live? — Near the station.", true],
+  ["P1-05", "1", "What do you live?", false], ["P1-05", "8", "lives with you", true], ["P1-05", "8", "Who lives with you?", true],
+  ["P1-05", "8", "does live with you", false], ["P1-05", "15", "Where are you from?", true],
+  ["P1-01", "9", "Are you a student? Yes, I'm.", false], ["P1-01", "12", "Am I in the right room? Yes, you're", false],
+  ["P1-01", "11", "Are your flatmates Belgian? No, they aren't", true], ["P1-01", "21", "They're my classmates.", true],
+  ["P1-01", "4", "You are't late. The class start at 9.", false],
+];
+for (const [u, n, a, want] of full) {
+  const got = G.isRight(a, KEYS[u][n], PROMPTS[u][n]);
+  if (got !== want) { fail++; console.error(`FULL ${u}#${n} ${JSON.stringify(a)} -> ${got}, prompt: ${PROMPTS[u][n]}, key: ${KEYS[u][n]}`); }
+}
+// With the prompt, every old case must still give the same result.
+
 const cases = [
   ["P1-01", "4", "aren't", true], ["P1-01", "4", "are not", true], ["P1-01", "4", "ARE NOT!", true],
   ["P1-01", "9", "Are you a student? Yes, I am.", true], ["P1-01", "9", "Are you a student? — Yes, I am", true],
@@ -27,10 +68,11 @@ const cases = [
   ["P1-05", "2", "When", true], ["P1-05", "2", "What time", true], ["P1-05", "8", "Who lives with you?", true],
   ["P1-05", "8", "Who does live with you?", false],
 ];
-let fail = 0;
 for (const [u, n, a, want] of cases) {
-  const got = G.isRight(a, KEYS[u][n]);
-  if (got !== want) { fail++; console.error(`MISMATCH ${u}#${n} ${JSON.stringify(a)} -> ${got}, key: ${KEYS[u][n]}`); }
+  for (const prompt of [undefined, PROMPTS[u][n]]) {
+    const got = G.isRight(a, KEYS[u][n], prompt);
+    if (got !== want) { fail++; console.error(`MISMATCH ${u}#${n} ${JSON.stringify(a)} -> ${got}, key: ${KEYS[u][n]}, prompt: ${prompt}`); }
+  }
 }
 // Self-consistency: the first variant of every key must grade as correct.
 let items = 0;
@@ -43,6 +85,12 @@ for (const [u, k] of Object.entries(KEYS)) {
   }
 }
 assert.strictEqual(G.isRight("x", undefined), false);
+// multiple choice keys
+for (const [a, want] of [["b", true], ["B)", true], ["(b)", true], ["went", true], ["b) went", true], ["a", false], ["go", false], ["", false]]) {
+  assert.strictEqual(G.isRight(a, "b) went", "Yesterday I ___ home. a) go b) went c) goes"), want, `MC ${a}`);
+}
+assert.strictEqual(G.isRight("I went home yesterday.", "b) went", "Yesterday I ___ home. a) go b) went c) goes"), false);
+assert.strictEqual(G.isRight("Yesterday I went home.", "b) went", "Yesterday I ___ home."), true);
 assert.strictEqual(G.clean("**It**'s ok ← note"), "It's ok");
 if (fail) { console.error(`${fail} grading problems`); process.exit(1); }
-console.log(`grading ok: ${cases.length} cases, ${items} keyed items`);
+console.log(`grading ok: ${cases.length + full.length} cases, ${items} keyed items`);

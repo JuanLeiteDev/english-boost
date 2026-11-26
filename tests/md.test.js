@@ -29,4 +29,7 @@ assert(/<del>wrong<\/del>/.test(render("~~wrong~~")));
 assert(/<blockquote><p>q<\/p><\/blockquote>/.test(render("> q")));
 assert(/type="checkbox" disabled checked/.test(render("- [x] done")));
 assert(/<pre><code>a &lt; b<\/code><\/pre>/.test(render("```\na < b\n```")));
+// ```listen blocks become a Play button with a hidden, escaped transcript
+const ls = render("```listen\nA: Hi <b>Tom</b>.\nB: Hello!\n```");
+assert(/class="listen"/.test(ls) && /listen-play/.test(ls) && /<details>/.test(ls) && /Hi &lt;b&gt;Tom&lt;\/b&gt;\.<br>B: Hello!/.test(ls), ls);
 console.log("md ok");

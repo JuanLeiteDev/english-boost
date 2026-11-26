@@ -34,7 +34,9 @@
         i++;
         while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
         i++;
-        out.push(`<pre><code>${esc(buf.join("\n"))}</code></pre>`);
+        // ```listen: a script the app reads aloud (listening practice); the text stays hidden until asked
+        if (/^```\s*listen\b/i.test(l)) out.push(`<div class="listen"><button type="button" class="btn sm listen-play">Play</button><details><summary>Show transcript</summary><p>${esc(buf.join("\n")).replace(/\n/g, "<br>")}</p></details></div>`);
+        else out.push(`<pre><code>${esc(buf.join("\n"))}</code></pre>`);
         continue;
       }
       let m;

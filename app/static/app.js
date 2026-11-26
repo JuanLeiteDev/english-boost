@@ -156,19 +156,38 @@
   /* ---------------- router ---------------- */
   function route() {
     let v = (location.hash || "#study").slice(1);
-    if (!["study", "grammar", "progress"].includes(v)) v = "study";
+    if (!["study", "grammar", "practice", "progress"].includes(v)) v = "study";
     $$(".view").forEach((el) => el.classList.toggle("active", el.id === `view-${v}`));
     $$(".side a.nav").forEach((a) => a.classList.toggle("active", a.dataset.view === v));
     if (v === "grammar") renderGrammar();
     if (v === "progress") renderProgress();
+    if (v === "practice") renderPractice();
     requestAnimationFrame(refreshThumbs);
   }
   window.addEventListener("hashchange", route);
 
   /* ---------------- state ---------------- */
+  const agentName = (a) => (a === "codex" ? "Codex" : "Claude");
+  // "missing" = CLI not found · "out" = found but not logged in · "ok" = logged in (or the CLI cannot tell us)
+  const AGENT_STATUS = { ok: "connected", out: "not logged in", missing: "not installed" };
+  function agentStatus(a) {
+    if (!S.state?.agents?.[a]) return "missing";
+    return S.state.auth?.[a] === false ? "out" : "ok";
+  }
+  function setPlaceholder() {
+    const st = agentStatus(S.agent), n = agentName(S.agent);
+    $("#input").placeholder = st === "missing" ? `${n} is not installed on this computer`
+      : st === "out" ? `${n} is not logged in on this computer` : "Write or speak in English";
+  }
   async function loadState() {
     S.state = await api("/api/state");
-    $$("[data-dot]").forEach((d) => d.classList.toggle("on", !!S.state.agents?.[d.dataset.dot]));
+    $$("[data-dot]").forEach((d) => {
+      const a = d.dataset.dot, st = agentStatus(a);
+      d.classList.toggle("on", st === "ok");
+      d.classList.toggle("out", st === "out");
+      d.closest("button").title = `${agentName(a)}: ${AGENT_STATUS[st]}`;
+    });
+    if (S.agent) setPlaceholder();
     $("#count-days").innerHTML = `${S.state.days_left}<em>.</em>`;
     $("#eyebrow").textContent = S.state.day ? `${phaseLabel(S.state)} · Week ${S.state.week} · Day ${S.state.day}` : phaseLabel(S.state);
     return S.state;
@@ -231,21 +250,37 @@
     });
   }
 
-  const MARK = /\[\[(?:abrir|open):([^\]]+)\]\]/g;
+  // [[open:…]] opens material; [[done:<block>]] ticks a block of today's plan (the tutor writes it when Juan finishes one).
+  const MARK = /\[\[(abrir|open|done):([^\]]+)\]\]/g;
   function parseMarkers(text) {
     const acts = [];
-    text.replace(MARK, (_, a) => { acts.push(a.trim()); return ""; });
+    text.replace(MARK, (_, kind, a) => { acts.push((kind === "done" ? "done:" : "") + a.trim()); return ""; });
     return acts;
   }
+  const DONE_ALIAS = { vocabulary: "srs", vocab: "srs", speaking: "output", writing: "output", 1: "grammar", 2: "listening", 3: "output", 4: "srs" };
+  const doneBlock = (raw) => { const k = raw.toLowerCase(); return S.state?.plan?.blocks?.find((b) => b.key === (DONE_ALIAS[k] || k)); };
+  function markDone(raw) {
+    const p = S.state?.plan, b = doneBlock(raw);
+    if (!b) return;
+    const key = `done:${p.date}`, done = new Set(store.get(key, []));
+    if (done.has(b.key)) return;
+    done.add(b.key); store.set(key, [...done]);
+    toast(`${b.label} block marked as done`);
+    if (S.tab === "today") renderToday();
+  }
   function doOpen(a) {
+    if (a.startsWith("done:")) return openPanel("today");
     if (a === "hoje" || a === "today") return openPanel("today");
     if (/^P[12]-\d\d$/.test(a)) return openUnit(a);
+    if (a.startsWith("practice:")) return openUnit(a.slice(9).trim());
     if (a.startsWith("doc:")) return openDoc(a.slice(4));
     if (a.startsWith("url:")) return window.open(a.slice(4), "_blank", "noopener");
   }
   function pill(a) {
+    if (a.startsWith("done:")) return [ic("check", "sm"), `${doneBlock(a.slice(5))?.label || a.slice(5)} done`];
     if (a === "hoje" || a === "today") return [ic("calendar", "sm"), "Today"];
     if (/^P[12]-\d\d$/.test(a)) return [ic("book", "sm"), a];
+    if (a.startsWith("practice:")) return [ic("spark", "sm"), "Practice set"];
     if (a.startsWith("doc:")) return [ic("file", "sm"), a.slice(4).split("/").pop().replace(/\.md$/, "")];
     if (a.startsWith("url:")) return [ic("external", "sm"), a.slice(4).replace(/^https?:\/\/(www\.)?/, "").split("/")[0]];
     return ["", a];
@@ -326,9 +361,8 @@
   function setAgent(a) {
     S.agent = a; store.set("agent", a);
     $$("#agent-seg button").forEach((b) => b.classList.toggle("active", b.dataset.agent === a));
-    const ok = S.state?.agents?.[a];
-    $("#input").placeholder = ok === false ? `${a === "codex" ? "Codex" : "Claude"} is not installed on this computer` : "Write or speak in English";
-    loadHistory();
+    if (S.state) setPlaceholder();
+    return loadHistory();
   }
 
   function setRunning(r) {
@@ -379,7 +413,9 @@
           try { ev = JSON.parse(line); } catch { continue; }
           if (ev.t === "text") {
             m.text += ev.v;
-            parseMarkers(m.text).forEach((a) => { if (!opened.has(a)) { opened.add(a); doOpen(a); } });
+            parseMarkers(m.text).forEach((a) => { if (!opened.has(a)) { opened.add(a); if (a.startsWith("done:")) return markDone(a.slice(5));
+              if (a.startsWith("practice:")) savePracticeChoices(a.slice(9).trim());
+              doOpen(a); } });
           } else if (ev.t === "tool") m.tools.push(ev.v);
           else if (ev.t === "error") addErr(ev.v);
           if (!raf) raf = requestAnimationFrame(paint);
@@ -396,6 +432,8 @@
       fw.stop();
       $(".speak", el).onclick = () => speak(m.text);
       $(".copy", el).onclick = () => copyText(m.text);
+      S.pendingPractice = null;  // a reply without a practice set must not attach these choices to a later one
+      if (location.hash === "#practice") renderPracticeList();
       loadState().then(() => { if (S.tab === "today") renderToday(); });
     }
   }
@@ -513,9 +551,9 @@
   function emptyState(icon, html) {
     return `<div class="empty"><div class="ico">${ic(icon, "lg")}</div><div>${html}</div></div>`;
   }
-  function openPanel(tab) {
+  function openPanel(tab, stay) {
     S.tab = tab;
-    if ((location.hash || "#study") !== "#study") location.hash = "#study";
+    if (!stay && (location.hash || "#study") !== "#study") location.hash = "#study";  // stay: page load keeps the current view
     setActive($("#panel-tabs"), (b) => b.dataset.tab === tab);
     $$(".pane").forEach((p) => p.classList.toggle("active", p.id === `panel-${tab}`));
     if (tab === "today") renderToday();
@@ -637,14 +675,17 @@
 
   /* ---------------- grammar unit (interactive) ---------------- */
   const { isRight, clean } = window.Grading;
+  const isPractice = (id) => /^\d{4}-\d\d-\d\d-[a-z0-9-]+$/.test(id || "");
 
   async function openUnit(id) {
     openPanel("unit");
     const box = $("#panel-unit");
     box.innerHTML = `<div class="sk" style="height:40px;width:60%"></div><div class="sk" style="height:14px;margin-top:20px"></div><div class="sk" style="height:14px;margin-top:8px;width:80%"></div><div class="sk" style="height:200px;margin-top:26px"></div>`;
     let data;
+    const isP = isPractice(id);
     try { data = await api(`/api/unit?id=${id}`); }
     catch {
+      if (isP) { box.innerHTML = emptyState("book", `Practice set <b>${esc(id)}</b> was not found.<br><br><a href="#practice">Make a new one</a>`); S.unit = null; return; }
       box.innerHTML = emptyState("book", `Unit <b>${esc(id)}</b> is not ready yet.<br><br><button class="btn sm" id="mk-unit">Ask the tutor</button>`);
       $("#mk-unit").onclick = () => send(`Please create grammar unit ${id} with exercises and an answer key (daily-study-planner, mode 4, references/unit-template.md).`); S.unit = null; return;
     }
@@ -655,7 +696,8 @@
         <button class="btn sm ghost" id="ex-help">${ic("spark", "sm")}Explain my mistakes</button>
         <button class="btn sm" id="ex-check">Check</button></div>`;
     const doc = $("#unit-doc");
-    wireDocLinks(doc, `materials/grammar/${id}.md`);
+    wireDocLinks(doc, isP ? `materials/generated/practice/${id}.md` : `materials/grammar/${id}.md`);
+    $$(".listen", doc).forEach((el) => { $(".listen-play", el).onclick = () => speak($("details p", el).innerText); });
     const draft = store.get(`ans:${id}`, {});
     let inEx = false;
     [...doc.children].forEach((node) => {
@@ -663,6 +705,7 @@
       if (!inEx) return;
       if (node.tagName === "OL") $$("li[data-n]", node).forEach((li) => {
         const inp = document.createElement("input");
+        li.dataset.q = li.textContent.trim();  // the item text, so a full-sentence answer can be graded too
         inp.className = "ex-input"; inp.dataset.n = li.dataset.n; inp.value = draft[li.dataset.n] || "";
         inp.placeholder = "Your answer"; inp.autocomplete = "off"; inp.spellcheck = false;
         inp.oninput = () => { const d = store.get(`ans:${id}`, {}); d[li.dataset.n] = inp.value; store.set(`ans:${id}`, d); };
@@ -676,7 +719,7 @@
         const ta = $("textarea", wrap);
         ta.value = draft.prod || "";
         ta.oninput = () => { const d = store.get(`ans:${id}`, {}); d.prod = ta.value; store.set(`ans:${id}`, d); };
-        $("button", wrap).onclick = () => ta.value.trim() ? send(`Unit ${id}, "${node.textContent.trim()}". Please check it and focus on the grammar of the unit (english-examiner, quick mode):\n\n${ta.value.trim()}`) : toast("Write something first.", 2200, "bad");
+        $("button", wrap).onclick = () => ta.value.trim() ? send(`${isP ? "Practice set" : "Unit"} ${id}, "${node.textContent.trim()}". Please check it and focus on the grammar of the ${isP ? "practice set" : "unit"} (english-examiner, quick mode):\n\n${ta.value.trim()}`) : toast("Write something first.", 2200, "bad");
         let anchor = node; while (anchor.nextElementSibling && !/^H[23]$/.test(anchor.nextElementSibling.tagName) && anchor.nextElementSibling.tagName !== "OL") anchor = anchor.nextElementSibling;
         anchor.after(wrap);
       }
@@ -699,7 +742,7 @@
       li.classList.remove("right", "wrong");
       if (!exp || /^(pessoal|personal)/i.test(exp)) return;
       total++;
-      const ok = li.dataset.override ? li.dataset.override === "1" : isRight(inp.value, exp);
+      const ok = li.dataset.override ? li.dataset.override === "1" : isRight(inp.value, exp, li.dataset.q);
       if (ok) right++;
       li.classList.add(ok ? "right" : "wrong");
       const mk = document.createElement("div");
@@ -718,7 +761,7 @@
       const items = $$(".ex-input", doc).map((i) => ({ n: i.dataset.n, answer: i.value, ok: i.closest("li").classList.contains("right") }));
       try {
         await api("/api/unit/result", { id, pct, score: right, total, items });
-        store.set(`result:${S.state.today}`, { id, pct });
+        if (!isPractice(id)) store.set(`result:${S.state.today}`, { id, pct });  // only units go into "Finish session"
         toast(`Saved: ${id} · ${pct}%`);
         c.textContent = "Check"; c.onclick = () => check(id);
       } catch (e) { toast(String(e.message || e), 4000, "bad"); }
@@ -733,7 +776,216 @@
       return `${li.dataset.n}. ${q.slice(0, 90)} | my answer: "${inp.value}" | expected: "${clean(S.key?.[li.dataset.n] || "")}"`;
     });
     if (!wrong.length) return toast("Press Check first, or there are no mistakes.");
-    send(`I did unit ${id} in the app. These answers were wrong:\n${wrong.join("\n")}\n\nExplain each mistake in simple English (one or two lines each) and give me 3 new sentences to practise the point I missed most. If it is a recurring error, log it in progress/error-log.md.`);
+    send(`I did ${isPractice(id) ? "practice set" : "unit"} ${id} in the app. These answers were wrong:\n${wrong.join("\n")}\n\nExplain each mistake in simple English (one or two lines each) and give me 3 new sentences to practise the point I missed most. If it is a recurring error, log it in progress/error-log.md.`);
+  }
+
+  /* ---------------- practice: a short wizard, then the tutor builds a practice set ----------------
+     Each step is plain data; `when` hides a step that does not apply. Answers live in localStorage
+     ("practice:draft") until "Create", so a reload never loses them.                              */
+  const has = (v, x) => Array.isArray(v) && v.includes(x);
+  const P_STEPS = [
+    { id: "skills", q: "What do you want to practise?", hint: "Choose one or more.", multi: true, opts: [
+      ["grammar", "Grammar", "rules and sentences"], ["vocabulary", "Vocabulary", "new words and phrases"],
+      ["listening", "Listening", "understand people"], ["speaking", "Speaking", "talk and answer"],
+      ["reading", "Reading", "short texts"], ["writing", "Writing", "messages and emails"]] },
+    { id: "grammar", q: "Which grammar points?", hint: "Choose one or more.", multi: true, when: (c) => has(c.skills, "grammar"), opts: () => grammarOpts() },
+    { id: "vocabulary", q: "What kind of words?", hint: "Choose one or more.", multi: true, when: (c) => has(c.skills, "vocabulary"), opts: [
+      ["topic", "Words for my topic", "the topics you choose next"], ["phrasal", "Phrasal verbs", "get up, find out…"],
+      ["collocations", "Word partners", "make a mistake, do homework…"], ["deck", "Words from my deck", "review my saved words"],
+      ["academic", "Class and AI words", "for lectures and projects"]] },
+    { id: "listening", q: "What do you want to listen to?", hint: "Choose one or more.", multi: true, when: (c) => has(c.skills, "listening"), opts: [
+      ["dialogue", "Short dialogues", "everyday situations"], ["lecture", "A class or a talk", "like a lecture at Howest"],
+      ["news", "Easy news", "slow and clear"], ["podcast", "A podcast", "real conversation"]] },
+    { id: "accent", q: "Which voices?", when: (c) => has(c.skills, "listening"), opts: [
+      ["american", "American English", "my accent target"], ["international", "International", "non-native speakers, like my classmates"],
+      ["any", "No preference", "the tutor chooses"]] },
+    { id: "speaking", q: "How do you want to speak?", hint: "Choose one or more.", multi: true, when: (c) => has(c.skills, "speaking"), opts: [
+      ["roleplay", "Role-play", "a real situation with the tutor"], ["opinion", "Give my opinion", "short answers with reasons"],
+      ["presentation", "Mini-presentation", "1–2 minutes about a topic"], ["pronunciation", "Pronunciation", "difficult sounds and words"],
+      ["shadowing", "Shadowing", "listen and repeat"]] },
+    { id: "reading", q: "What do you want to read?", hint: "Choose one or more.", multi: true, when: (c) => has(c.skills, "reading"), opts: [
+      ["short", "A short text", "a story or a description"], ["email", "An email or a notice", "from a landlord, a teacher…"],
+      ["article", "An article about AI", "simple and short"]] },
+    { id: "writing", q: "What do you want to write?", hint: "Choose one or more.", multi: true, when: (c) => has(c.skills, "writing"), opts: [
+      ["message", "An informal message", "to a friend or a flatmate"], ["email", "A formal email", "to a teacher or an office"],
+      ["paragraph", "A short paragraph", "my opinion about something"]] },
+    { id: "topics", q: "Which topics?", hint: "Optional. Choose one or more.", multi: true, optional: true, opts: [
+      ["housing", "Housing"], ["cityhall", "City hall"], ["bank", "Bank"], ["health", "Health"], ["transport", "Transport"],
+      ["university", "University & classes"], ["groupwork", "Group projects"], ["ai", "AI & tech"], ["social", "Social life"],
+      ["food", "Food & shopping"], ["belgium", "Belgium"], ["surprise", "Surprise me"]] },
+    { id: "level", q: "How hard?", opts: [["easier", "Easier", "review and confidence"], ["level", "My level", "about A2+ / B1"], ["challenge", "Challenge", "a bit above my level"]] },
+    { id: "time", q: "How much time do you have?", opts: [["10", "10 min"], ["20", "20 min"], ["30", "30 min"], ["45", "45 min"]] },
+    { id: "types", q: "Which kinds of exercises?", hint: "Optional. If you skip, the tutor chooses.", multi: true, optional: true,
+      when: (c) => ["grammar", "vocabulary", "listening", "reading"].some((x) => has(c.skills, x)), opts: [
+        ["gap", "Fill the gap"], ["choice", "Multiple choice"], ["mistake", "Find the mistake"],
+        ["rewrite", "Rewrite the sentence"], ["order", "Put the words in order"], ["short", "Short answers"]] },
+    { id: "note", q: "Anything else?", hint: "Optional. For example: “I have a flat viewing tomorrow.”", text: true, optional: true },
+    { id: "summary", q: "Ready?", summary: true },
+  ];
+  const P_DEFAULT = { level: "level", time: "20" };
+  let pDraft = null;
+  const pLoad = () => { pDraft = pDraft || store.get("practice:draft", null) || { step: "skills", c: { ...P_DEFAULT } }; return pDraft; };
+  const pSave = () => store.set("practice:draft", pDraft);
+  const pSteps = () => P_STEPS.filter((s) => !s.when || s.when(pLoad().c));
+  const optsOf = (s) => (typeof s.opts === "function" ? s.opts() : s.opts || []);
+  const optLabel = (s, v) => (optsOf(s).find((o) => o[0] === v) || [v, v])[1];
+
+  let pSpine = null, pShowAll = false;
+  function grammarOpts() {
+    const units = (pSpine || []).filter((u) => u.title);
+    const short = (t) => plain(t).split(" · ")[0];
+    const seen = units.filter((u) => u.status !== "todo"), picked = pLoad().c.grammar || [];
+    // short list: the next 8 units (plus any already picked); "Show all units" opens the whole spine
+    const next = units.filter((u) => u.status === "todo").filter((u, i) => pShowAll || i < 8 || picked.includes(u.id));
+    return [["weak", "My weak points", "my mistakes and units to repeat", "Suggested"],
+      ...seen.map((u) => [u.id, short(u.title), `${u.id} · ${u.status === "redo" ? "to repeat" : "studied"}`, "Studied"]),
+      ...next.map((u) => [u.id, short(u.title), `${u.id} · ${u.cefr || ""}`.replace(/ · $/, ""), "Coming next"])];
+  }
+
+  async function renderPractice() {
+    if (!pSpine) { try { pSpine = await api("/api/spine"); } catch { pSpine = []; } }
+    renderWizard();
+    renderPracticeList();
+  }
+
+  function goStep(id) { pLoad().step = id; pSave(); renderWizard(); }
+  function stepMove(dir) {
+    const steps = pSteps(), i = Math.max(0, steps.findIndex((s) => s.id === pLoad().step));
+    goStep(steps[Math.min(steps.length - 1, Math.max(0, i + dir))].id);
+  }
+
+  function renderWizard() {
+    const box = $("#pw"), d = pLoad(), steps = pSteps();
+    let i = steps.findIndex((s) => s.id === d.step);
+    if (i < 0) { i = 0; d.step = steps[0].id; }
+    const s = steps[i], val = d.c[s.id];
+    const ready = s.optional || s.summary || (s.multi ? (val || []).length > 0 : !!val);
+    let body = "";
+    if (s.summary) {
+      const rows = steps.filter((x) => !x.summary).map((x) => {
+        const v = d.c[x.id];
+        const txt = x.text ? (v || "").trim() : x.multi ? (v || []).map((o) => optLabel(x, o)).join(", ") : v ? optLabel(x, v) : "";
+        return `<button class="sum-row" data-go="${x.id}"><span>${esc(x.q.replace(/\?$/, ""))}</span><b>${esc(txt || (x.optional ? "tutor's choice" : "—"))}</b></button>`;
+      });
+      body = `<div class="sum">${rows.join("")}</div>`;
+    } else if (s.text) {
+      body = `<textarea class="pw-note" id="pw-note" placeholder="Write in English (optional)">${esc(val || "")}</textarea>`;
+    } else {
+      let group = "";
+      body = `<div class="opts${optsOf(s).some((o) => o[3]) ? " grouped" : ""}" role="${s.multi ? "group" : "radiogroup"}">` + optsOf(s).map(([v, label, sub, g]) => {
+        const on = s.multi ? has(val, v) : val === v;
+        const head = g && g !== group ? ((group = g), `<div class="opt-group">${esc(g)}</div>`) : "";
+        return `${head}<button class="opt${on ? " on" : ""}${s.multi ? " multi" : ""}" data-v="${esc(v)}" role="${s.multi ? "checkbox" : "radio"}" aria-checked="${on}">
+          <span class="ck">${ic("check", "sm")}</span><span class="ot"><b>${esc(label)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</span></button>`;
+      }).join("") + `</div>`;
+      if (s.id === "grammar" && !pShowAll && (pSpine || []).filter((u) => u.status === "todo").length > 8)
+        body += `<button class="btn quiet sm pw-more" id="pw-all">Show all units</button>`;
+    }
+    box.innerHTML = `
+      <div class="pw-top"><span class="eyebrow">Step ${i + 1} of ${steps.length}</span><div class="pw-bar"><span style="width:${Math.round(((i + 1) / steps.length) * 100)}%"></span></div></div>
+      <h2>${esc(s.q)}</h2>${s.hint ? `<p class="muted pw-hint">${esc(s.hint)}</p>` : ""}
+      ${body}
+      <div class="pw-nav">
+        ${i ? `<button class="btn quiet sm" id="pw-back">Back</button>` : "<span></span>"}
+        <span class="grow"></span>
+        ${s.summary ? `<button class="btn quiet sm" id="pw-restart">Start over</button><button class="btn" id="pw-create">${ic("spark", "sm")}<span>Create my practice</span></button>`
+          : `${s.optional ? `<button class="btn quiet sm" id="pw-skip">Skip</button>` : ""}<button class="btn sm" id="pw-next" ${ready ? "" : "disabled"}><span>Next</span>${ic("arrow", "sm arrow")}</button>`}
+      </div>`;
+    $$(".opt", box).forEach((b) => (b.onclick = () => {
+      const v = b.dataset.v;
+      if (s.multi) {
+        const set = new Set(d.c[s.id] || []);
+        set.has(v) ? set.delete(v) : set.add(v);
+        d.c[s.id] = optsOf(s).map((o) => o[0]).filter((x) => set.has(x));
+        pSave(); renderWizard();
+      } else {
+        d.c[s.id] = v; pSave(); renderWizard();
+        setTimeout(() => { if (pLoad().step === s.id) stepMove(1); }, 160);  // single choice: go on by itself
+      }
+    }));
+    $$(".sum-row", box).forEach((b) => (b.onclick = () => goStep(b.dataset.go)));
+    const note = $("#pw-note");
+    if (note) { note.oninput = () => { d.c.note = note.value; pSave(); }; note.focus(); }
+    if ($("#pw-all")) $("#pw-all").onclick = () => { pShowAll = true; renderWizard(); };
+    if ($("#pw-back")) $("#pw-back").onclick = () => stepMove(-1);
+    if ($("#pw-next")) $("#pw-next").onclick = () => stepMove(1);
+    if ($("#pw-skip")) $("#pw-skip").onclick = () => { if (s.multi) d.c[s.id] = []; else if (s.text) d.c[s.id] = ""; pSave(); stepMove(1); };
+    if ($("#pw-restart")) $("#pw-restart").onclick = () => { pDraft = { step: "skills", c: { ...P_DEFAULT } }; pSave(); renderWizard(); };
+    if ($("#pw-create")) $("#pw-create").onclick = createPractice;
+    box.onkeydown = (e) => {
+      if (e.key !== "Enter" || e.target.tagName === "TEXTAREA" && !(e.ctrlKey || e.metaKey)) return;
+      const nx = $("#pw-next") || $("#pw-create");
+      if (nx && !nx.disabled) { e.preventDefault(); nx.click(); }
+    };
+  }
+
+  // Only what the visible steps say (answers of steps that no longer apply are left out).
+  function practiceChoices() {
+    const d = pLoad(), out = {};
+    pSteps().filter((s) => !s.summary).forEach((s) => {
+      const v = d.c[s.id];
+      if (s.text ? (v || "").trim() : s.multi ? (v || []).length : v) out[s.id] = s.text ? v.trim().slice(0, 600) : v;
+    });
+    return out;
+  }
+  function practicePrompt(ch) {
+    const line = (s) => {
+      const v = ch[s.id];
+      if (v === undefined) return s.optional ? `- ${s.q.replace(/\?$/, "")}: tutor's choice` : "";
+      const txt = s.text ? `"${v}"` : s.multi ? v.map((o) => (s.id === "grammar" && o !== "weak" ? `${o} ${optLabel(s, o)}` : optLabel(s, o))).join(", ") : optLabel(s, v);
+      return `- ${s.q.replace(/\?$/, "")}: ${txt}`;
+    };
+    return `Please create a practice set for me (practice-builder skill).\n${pSteps().filter((s) => !s.summary).map(line).filter(Boolean).join("\n")}\n\nChoices (JSON): ${JSON.stringify(ch)}`;
+  }
+
+  // Claude first; Codex only when Claude is not installed or not logged in.
+  const pickAgent = () => ["claude", "codex"].find((a) => agentStatus(a) === "ok") || null;
+  async function createPractice() {
+    const agent = pickAgent();
+    if (!agent) return toast("Claude and Codex are not connected. Check Settings.", 3600, "bad");
+    if (S.running) return toast("The tutor is still answering. Wait a moment.", 2600, "bad");
+    const ch = practiceChoices(), text = practicePrompt(ch);  // build it before the draft is reset below
+    if (S.agent !== agent) await setAgent(agent);
+    if (agent === "codex") toast("Claude is not available, so Codex will make it.", 3000);
+    S.pendingPractice = ch;
+    store.set("practice:last", ch);
+    pDraft = { step: "skills", c: { ...P_DEFAULT } }; pSave(); renderWizard();
+    send(text);
+  }
+  function savePracticeChoices(id) {
+    if (!S.pendingPractice) return;
+    const choices = S.pendingPractice;
+    S.pendingPractice = null;
+    api("/api/practice/choices", { id, choices }).then(() => { if (location.hash === "#practice") renderPracticeList(); }).catch(() => {});
+  }
+  function practiceAgain(ch) {
+    pDraft = { step: "summary", c: { ...P_DEFAULT, ...ch } }; pSave();
+    renderWizard();
+    $("#pw").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function renderPracticeList() {
+    const box = $("#plist");
+    let sets;
+    try { sets = await api("/api/practice/list"); } catch { sets = []; }
+    if (!sets.length) { box.innerHTML = `<p class="muted plist-empty">Your practice sets will appear here.</p>`; return; }
+    box.innerHTML = `<div class="phase-title"><b>Your practice sets</b><span>${sets.length}</span></div><div class="psets"></div>`;
+    const grid = $(".psets", box);
+    sets.forEach((x) => {
+      const el = document.createElement("div");
+      el.className = "pset";
+      const pct = Number.isInteger(x.pct) ? x.pct : null;
+      const cls = pct === null ? "" : pct >= 90 ? "done" : pct >= 70 ? "ok" : "redo";
+      el.innerHTML = `<div class="top"><span class="uid">${esc(fmtDate(x.date))}</span>${pct === null ? `<span class="tag">new</span>` : `<span class="tag ${cls}">${pct}%</span>`}</div>
+        <span class="ut">${esc(plain(x.title))}</span>${x.meta ? `<small>${esc(plain(x.meta))}</small>` : ""}
+        <div class="row-end"></div>`;
+      const row = $(".row-end", el);
+      const b = (label, cls2, fn) => { const k = document.createElement("button"); k.className = `btn sm ${cls2}`; k.innerHTML = label; k.onclick = fn; row.appendChild(k); };
+      if (x.choices) b("Again", "quiet", () => practiceAgain(x.choices));
+      b(`Open${ic("arrow", "sm arrow")}`, "ghost", () => { location.hash = "#study"; openUnit(x.id); });
+      grid.appendChild(el);
+    });
+    stagger(grid);
   }
 
   /* ---------------- documents ---------------- */
@@ -899,7 +1151,7 @@
     f.codex_bin.value = s.settings.codex_bin || "";
     $("#set-cbin").placeholder = s.paths.claude ? `automatic: ${s.paths.claude}` : "not found: enter the path";
     $("#set-xbin").placeholder = s.paths.codex ? `automatic: ${s.paths.codex}` : "not found: enter the path";
-    $("#set-status").innerHTML = ["claude", "codex"].map((a) => `<span><i class="dot ${s.agents[a] ? "on" : ""}"></i>${a} ${s.agents[a] ? "found" : "not found"}</span>`).join("")
+    $("#set-status").innerHTML = ["claude", "codex"].map((a) => { const st = agentStatus(a); return `<span><i class="dot ${st === "ok" ? "on" : st}"></i>${a} ${AGENT_STATUS[st]}</span>`; }).join("")
       + `<span><i class="dot ${s.stt ? "on" : ""}"></i>speech-to-text ${s.stt ? "on" : "off"}</span><span>env: ${esc(s.env || "")}</span>`;
     d.showModal();
     d.onclose = async () => {
@@ -937,10 +1189,11 @@
     $("#btn-git").onclick = gitSave;
     $("#dlg-day").addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });  // click outside closes
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("chat-open") && !document.querySelector("dialog[open]")) document.body.classList.remove("chat-open"); });
+    window.addEventListener("focus", () => { if (!S.running) loadState().catch(() => {}); });  // e.g. back from logging in to Claude/Codex
     setRunning(false);
     setAgent(S.agent);
     route();
-    openPanel("today");
+    openPanel("today", true);
   }
   init().catch((e) => { document.body.innerHTML = `<p style="padding:24px;font-family:system-ui">Could not start: ${esc(e.message)}</p>`; });
 })();

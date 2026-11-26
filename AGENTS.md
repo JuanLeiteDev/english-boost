@@ -31,7 +31,7 @@ Shared instructions for **Codex** (reads `AGENTS.md`) and **Claude Code** (reads
 | `plan/weeks/semana-XX.md` | Day-by-day plan for each week. Generated or adjusted by `daily-study-planner`. |
 | `materials/grammar/` | Grammar units with explanations and exercises. Answer keys are in `materials/grammar/answers/`. |
 | `materials/official/` | Cambridge sample papers. **Not in git**: run `python3 scripts/fetch_official_materials.py` (Docker does this automatically). |
-| `materials/generated/` | Readings, worksheets and scenario cards created by the skills. |
+| `materials/generated/` | Readings, worksheets and scenario cards created by the skills. Practice sets (`practice-builder`) go in `materials/generated/practice/`, with keys in `practice/answers/`. |
 | `resources/catalog.md` | Curated, verified external resources (links checked on 2026-11-24). |
 | `research/` | The evidence base for the plan (literature review and curriculum comparison). |
 | `assessments/` | Diagnostic, checkpoints and graded writing/speaking (english-examiner). |
@@ -49,6 +49,7 @@ All skills live in `.agents/skills/`, the single source. Codex reads them from t
 |---|---|---|
 | "What do I do today?", start or close a session, weekly review, adapt the plan | **daily-study-planner** (custom) | Orchestrator. It reads the plan and progress, then routes to the other skills. |
 | Diagnostic / checkpoint / grade a writing or speaking sample against the CEFR | **english-examiner** (custom) | Uses Cambridge B1/B2 assessment criteria. Writes to `assessments/` and the error log. |
+| Extra practice beyond the plan (choices from the app's Practice page, or "more exercises on X") | **practice-builder** (custom) | Writes `materials/generated/practice/<ID>.md` + hidden key in `answers/`, then `[[open:practice:<ID>]]`. Never touches the grammar spine. |
 | Conversation, role-plays (Erasmus situations), fluency, pronunciation | **speaking-coach** (custom) | Works from transcripts (voice dictation) and prepares shadowing scripts. |
 | Initial placement profile | `langtutor-assessor` | Run once on day 1, then `english-examiner` handles checkpoints. |
 | Interactive mini-lesson (grammar in context, reading, listening) | `langtutor-session` | Uses the profile in `Language-Tutor/learner-data/english/`. |
@@ -65,6 +66,7 @@ All skills live in `.agents/skills/`, the single source. Codex reads them from t
 
 - **Placement:** `langtutor-assessor` covers day 1 only. `level-check` (Claude Tutor) is used only for topic micro-courses. `english-examiner` handles all later checkpoints.
 - **Spaced repetition:** `langtutor-vocab` handles words. `recall` handles review decks of grammar micro-courses. Don't put the same item in both.
+- **Extra practice:** `practice-builder` makes interactive, auto-graded sets on demand (Practice page). `langtutor-immersion` makes reading/scenario material that is not graded in the app.
 - **Tutoring:** `langtutor-session` handles daily mixed practice. `teach-me` handles a structured micro-course on a single point.
 - **Progress:** `langtutor-tracker` produces the numbers. `daily-study-planner` decides what changes in the plan. Errors go to `progress/error-log.md`.
 
@@ -75,8 +77,11 @@ The learner usually talks to you through the local web app (`app/`), not through
   - `[[open:today]]`: today's plan, with a timer and the 4 blocks;
   - `[[open:P1-02]]`: an interactive grammar unit, with answer inputs and auto-correction;
   - `[[open:doc:path/file.md]]`: any project document (answer keys can't be opened);
-  - `[[open:url:https://…]]`: an external link.
+  - `[[open:url:https://…]]`: an external link;
+  - `[[open:practice:<ID>]]`: a practice set made by `practice-builder` (interactive, like a grammar unit).
+- The **Practice** page lets the learner pick skills, grammar points, topics, level and time. It then sends the choices to the tutor (Claude first, Codex only if Claude is not available) with "practice-builder skill" in the message.
 - When the learner asks for the study of the day, open `[[open:today]]` and the unit of the day, then guide them block by block.
+- When the learner finishes a block of today's plan, tick it with a marker on its own line: `[[done:grammar]]`, `[[done:listening]]`, `[[done:output]]` (speaking or writing) or `[[done:srs]]` (vocabulary). Only tick a block they really did; they can still tick or untick blocks by hand.
 - The app itself grades grammar exercises (saved to `progress/exercises/`), closes sessions (writes `progress/log.md` and the grammar spine, rebuilds the dashboard) and commits. Don't duplicate these steps. When the learner sends you their wrong items, explain them and log recurring errors in `progress/error-log.md`.
 - There is no interactive terminal on the learner's side, so never ask them to run commands.
 
