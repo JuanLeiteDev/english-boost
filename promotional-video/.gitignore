@@ -1,0 +1,21 @@
+# Local toolchain and dependencies (recreate with the steps in README.md)
+node_modules/
+.tools/
+.venv/
+__pycache__/
+
+# Build output
+dist/
+out/
+
+# Isolated copy of the app with demo data (never the real learning data)
+demo-workspace/
+
+# Raw captures (large); the processed clips in public/ are what Remotion uses
+recordings/raw/
+
+.DS_Store
+.env
+
+# ElevenLabs generations (paid): kept locally, reused, never committed
+.cache/

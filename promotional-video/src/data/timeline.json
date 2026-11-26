@@ -1,0 +1,139 @@
+{
+ "fps": 60,
+ "width": 1920,
+ "height": 1080,
+ "duration": 60.783,
+ "durationInFrames": 3647,
+ "scenes": [
+  {
+   "id": "s1",
+   "title": "Necessidade",
+   "start": 0.0,
+   "duration": 6.583,
+   "startFrame": 0,
+   "durationInFrames": 395,
+   "audio": [
+    {
+     "key": "s1",
+     "file": "narration/s1.mp3",
+     "at": 0.8
+    }
+   ]
+  },
+  {
+   "id": "s2",
+   "title": "Iniciativa",
+   "start": 6.583,
+   "duration": 4.683,
+   "startFrame": 395,
+   "durationInFrames": 281,
+   "audio": [
+    {
+     "key": "s2",
+     "file": "narration/s2.mp3",
+     "at": 0.2
+    }
+   ]
+  },
+  {
+   "id": "s3",
+   "title": "Fundamentação",
+   "start": 11.267,
+   "duration": 8.65,
+   "startFrame": 676,
+   "durationInFrames": 519,
+   "audio": [
+    {
+     "key": "s3",
+     "file": "narration/s3.mp3",
+     "at": 0.2
+    }
+   ]
+  },
+  {
+   "id": "s4",
+   "title": "Plano diário",
+   "start": 19.917,
+   "duration": 5.633,
+   "startFrame": 1195,
+   "durationInFrames": 338,
+   "audio": [
+    {
+     "key": "s4",
+     "file": "narration/s4.mp3",
+     "at": 0.2
+    }
+   ]
+  },
+  {
+   "id": "s5",
+   "title": "Listening Cambridge",
+   "start": 25.55,
+   "duration": 9.217,
+   "startFrame": 1533,
+   "durationInFrames": 553,
+   "audio": [
+    {
+     "key": "s5",
+     "file": "narration/s5.mp3",
+     "at": 0.2
+    }
+   ]
+  },
+  {
+   "id": "s6",
+   "title": "Speaking",
+   "start": 34.767,
+   "duration": 12.483,
+   "startFrame": 2086,
+   "durationInFrames": 749,
+   "audio": [
+    {
+     "key": "s6a",
+     "file": "narration/s6a.mp3",
+     "at": 0.2
+    },
+    {
+     "key": "learner",
+     "file": "speaking/learner-en.mp3",
+     "at": 3.0
+    },
+    {
+     "key": "s6b",
+     "file": "narration/s6b.mp3",
+     "at": 6.728
+    }
+   ]
+  },
+  {
+   "id": "s7",
+   "title": "Progresso",
+   "start": 47.25,
+   "duration": 5.417,
+   "startFrame": 2835,
+   "durationInFrames": 325,
+   "audio": [
+    {
+     "key": "s7",
+     "file": "narration/s7.mp3",
+     "at": 0.2
+    }
+   ]
+  },
+  {
+   "id": "s8",
+   "title": "Objetivo",
+   "start": 52.667,
+   "duration": 8.117,
+   "startFrame": 3160,
+   "durationInFrames": 487,
+   "audio": [
+    {
+     "key": "s8",
+     "file": "narration/s8.mp3",
+     "at": 0.3
+    }
+   ]
+  }
+ ]
+}

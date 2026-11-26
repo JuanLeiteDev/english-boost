@@ -87,11 +87,11 @@ h1, h2, h3 { letter-spacing: -.03em; font-weight: 600; margin: 0; }
 .side-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 44px; }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--fg); min-width: 0; }
 .brand:hover { color: var(--fg); }
-.mark {
+.brand .mark {
   position: relative; width: 40px; height: 40px; border: 1px solid var(--line-strong); border-radius: var(--r-m); flex: none;
   display: flex; align-items: center; justify-content: center; text-align: center; font: 700 13px/1 var(--font); letter-spacing: -.02em; background: var(--raised);
 }
-.mark::after { content: ""; position: absolute; right: 9px; bottom: 7px; width: 6px; height: 1.5px; background: var(--signal); }
+.brand .mark::after { content: ""; position: absolute; right: 9px; bottom: 7px; width: 6px; height: 1.5px; background: var(--signal); }
 .brand .name { font-weight: 600; font-size: 17px; letter-spacing: -.02em; white-space: nowrap; }
 .spine { position: relative; display: flex; flex-direction: column; gap: 4px; padding-left: 2px; }
 .spine::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--line); }
