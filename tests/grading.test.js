@@ -84,6 +84,30 @@ for (const [u, k] of Object.entries(KEYS)) {
     if (!G.isRight(v, exp)) { fail++; console.error(`SELF ${u}#${n}: ${exp}`); }
   }
 }
+// The practice-builder gold example: natural answers (letters, words, full sentences) must pass.
+{
+  const ref = path.join(__dirname, "..", ".agents", "skills", "practice-builder", "references");
+  const items = {}, key = {};
+  let inEx = false;
+  for (const line of fs.readFileSync(path.join(ref, "example-set.md"), "utf8").split(/\r?\n/)) {
+    if (/^## /.test(line)) inEx = /practi/i.test(line);
+    const m = inEx && line.match(/^(\d+)\.\s+(.+)$/);
+    if (m) items[m[1]] = m[2];
+  }
+  for (const line of fs.readFileSync(path.join(ref, "example-key.md"), "utf8").split(/\r?\n/)) {
+    const m = line.match(/^(\d+)\.\s+(.+)$/);
+    if (m) key[m[1]] = m[2];
+  }
+  const ex = [["1", "hang out", true], ["1", "My friends and I usually hang out at the student bar on Thursdays.", true], ["1", "hang", false],
+    ["6", "looking forward to", true], ["7", "up", true], ["7", "on", false], ["16", "made", true], ["16", "make", false],
+    ["18", "did", true], ["18", "Yesterday I did my homework with Pedro.", true], ["18", "Yesterday I made my homework with Pedro.", false],
+    ["20", "I'm looking forward to seeing you on Saturday.", true], ["22", "b", true], ["22", "Saturday at 8", true], ["22", "a", false],
+    ["23", "because his flatmate has an exam", true], ["26", "2nd floor", true], ["27", "b", true], ["27", "call Lucas", true],
+    ["29", "b", true], ["29", "a yellow dress and tennis shoes", true], ["30", "c", false]];
+  for (const [n, a, want] of ex) {
+    if (G.isRight(a, key[n], items[n]) !== want) { fail++; console.error(`EXAMPLE #${n} ${JSON.stringify(a)} -> ${!want}, key: ${key[n]}`); }
+  }
+}
 assert.strictEqual(G.isRight("x", undefined), false);
 // multiple choice keys
 for (const [a, want] of [["b", true], ["B)", true], ["(b)", true], ["went", true], ["b) went", true], ["a", false], ["go", false], ["", false]]) {

@@ -99,7 +99,8 @@ Follow AGENTS.md and use the project skills.
 The app has a main workspace. To open material there, write a marker on its own line: [[open:today]] (today's plan), [[open:P1-02]] (interactive grammar unit), [[open:doc:path/file.md]] (a project document) or [[open:url:https://...]] (external link).
 When Juan asks for today's study, open [[open:today]] and the grammar unit of the day, then guide him block by block.
 When Juan finishes a block of today's plan, mark it as done with a marker on its own line: [[done:grammar]], [[done:listening]], [[done:output]] (speaking or writing) or [[done:srs]] (vocabulary). Only mark a block he really did.
-When Juan asks for a practice set from the Practice page, use the practice-builder skill, then open the new set with [[open:practice:<id>]].
+When Juan asks for a practice set from the Practice page, use the practice-builder skill (it must pass scripts/check_practice.py), then open the new set with [[open:practice:<id>]].
+External links: only direct exercise/audio pages from resources/exercise-links.md, never a home page or an index page.
 The app checks grammar exercises, closes sessions (log, spine, dashboard) and commits with its own buttons: do not do these yourself and never ask Juan to run terminal commands. Only update progress/error-log.md when you see recurring errors.
 Every file you write for Juan (feedback, results, plans, materials) must be in simple English and short: essentials only."""
 
@@ -107,6 +108,7 @@ CLAUDE_TOOLS = ",".join([
     "Read", "Write", "Edit", "Glob", "Grep", "Skill", "WebSearch", "WebFetch", "TodoWrite",
     "Bash(date*)", "Bash(ls*)", "Bash(cat*)", "Bash(pdftotext*)", "Bash(curl -s*)",
     "Bash(python3 scripts/build_dashboard.py*)", "Bash(python scripts/build_dashboard.py*)",
+    "Bash(python3 scripts/check_practice.py*)", "Bash(python scripts/check_practice.py*)",
     "Bash(git status*)", "Bash(git log*)", "Bash(git diff*)",
 ])
 
@@ -410,7 +412,7 @@ def state_payload() -> dict:
         "sessions": len({r["date"] for r in log}),
         "units_done": sum(1 for u in spine if u["status"] in ("done", "ok")),
         "units_total": len(spine),
-        "agents": {"claude": bool(claude), "codex": bool(codex)}, "stt": stt_available(),
+        "agents": {"claude": bool(claude), "codex": bool(codex)}, "stt": stt_available(), "tts": tts_available(),
         "auth": {"claude": agent_auth("claude", claude), "codex": agent_auth("codex", codex)},
         "paths": {"claude": claude or "", "codex": codex or ""}, "os": os.name, "env": ENV_ID,
         "settings": settings(), "codex_models": cached("codex_models", 60, codex_models),
@@ -570,6 +572,131 @@ def transcribe(audio: bytes, content_type: str) -> dict:
             os.unlink(path)
         except OSError:
             pass
+
+
+# ---------------------------------------------------------------- text-to-speech (listening scripts)
+# Browsers on Linux often have no speech voices, so "Play" was silent. Piper runs locally on the
+# CPU (fast, offline after the first download) with natural American voices; each speaker of a
+# dialogue gets their own voice. Voice files are downloaded on first use into TTS_MODELS_DIR.
+TTS_VOICES = {"f": ["lessac", "amy"], "m": ["ryan", "joe"]}  # en_US-<name>-medium
+TTS_URL = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/{v}/medium/en_US-{v}-medium.{ext}"
+TTS_DIR = Path(os.environ.get("TTS_MODELS_DIR") or (STATE / "piper"))
+TTS_CACHE = STATE / "tts-cache"
+TTS_LOCK = threading.Lock()
+_TTS: dict = {}
+MAX_TTS_CHARS = 5000
+FEMALE = set("anna mia emma sarah lisa marta sofia sophia laura julia maria eleni ines chloe zoe amy kate lucy emily olivia nina "
+             "hannah eva elena alice claire sophie lea lena ana sara rita jess jessica mary linda fatima aisha yuki mei".split())
+MALE = set("tom jack juan pedro nikos john mark paul peter david ben sam max luca lukas pierre jan tim leo carlos diego "
+           "ahmed omar hans thomas james mike michael daniel ryan joe kevin bart pieter wout raj ali".split())
+SPEAKER_LINE = re.compile(r"^\s*([A-Z][\w.'’-]*(?: [A-Z][\w.'’-]*){0,2})\s*:\s*(.+)$")
+
+
+def tts_available() -> bool:
+    if os.environ.get("EB_TTS_FAKE"):
+        return True
+    import importlib.util
+    return importlib.util.find_spec("piper") is not None
+
+
+def parse_script(text: str) -> tuple[list[tuple[str | None, str]], dict[str, str]]:
+    """'Mia: Hi!' lines → [(speaker, text)]. An optional first line 'voices: Mia=f, Jack=m' sets genders."""
+    lines = [l.strip() for l in str(text).splitlines() if l.strip()]
+    genders: dict[str, str] = {}
+    if lines and re.match(r"(?i)^voices\s*:", lines[0]):
+        for name, g in re.findall(r"([\w .'’-]+?)\s*=\s*(female|male|woman|man|f|m)\b", lines[0].split(":", 1)[1], re.I):
+            genders[name.strip().lower()] = "f" if g.lower() in ("f", "female", "woman") else "m"
+        lines = lines[1:]
+    parts: list[tuple[str | None, str]] = []
+    for l in lines:
+        m = SPEAKER_LINE.match(l)
+        if m:
+            parts.append((m.group(1).strip(), m.group(2).strip()))
+        elif parts:  # a continuation line belongs to the previous speaker
+            parts[-1] = (parts[-1][0], parts[-1][1] + " " + l)
+        else:
+            parts.append((None, l))
+    return parts, genders
+
+
+def assign_voices(parts, genders: dict[str, str]) -> dict:
+    """Each speaker gets a voice of the right gender (stated, guessed from the name, or alternating)."""
+    out, used, last = {}, {"f": 0, "m": 0}, "m"
+    for spk, _ in parts:
+        if spk in out:
+            continue
+        low = (spk or "").lower()
+        first = re.sub(r"^(mr|mrs|ms|miss|dr|prof)\.?\s+", "", low).split(" ")[0]
+        g = genders.get(low) or ("m" if low.startswith("mr ") or low.startswith("mr.") else None) \
+            or ("f" if re.match(r"^(mrs|ms|miss)\b", low) else None) \
+            or ("f" if first in FEMALE else "m" if first in MALE else None) or ("f" if last == "m" else "m")
+        pool = TTS_VOICES[g]
+        out[spk] = pool[used[g] % len(pool)]
+        used[g] += 1
+        last = g
+    return out
+
+
+def tts_voice(name: str):
+    with TTS_LOCK:
+        if name in _TTS:
+            return _TTS[name]
+        from piper import PiperVoice
+        TTS_DIR.mkdir(parents=True, exist_ok=True)
+        model = TTS_DIR / f"en_US-{name}-medium.onnx"
+        for ext, dst in (("onnx.json", Path(str(model) + ".json")), ("onnx", model)):
+            if not dst.is_file():
+                import urllib.request
+                tmp = dst.with_suffix(dst.suffix + ".part")
+                with urllib.request.urlopen(TTS_URL.format(v=name, ext=ext), timeout=120) as r, open(tmp, "wb") as f:
+                    shutil.copyfileobj(r, f)
+                tmp.replace(dst)
+        _TTS[name] = PiperVoice.load(str(model))
+        return _TTS[name]
+
+
+def synthesize(text: str, slow: bool = False) -> bytes:
+    """WAV bytes for a listening script (cached on disk)."""
+    import hashlib
+    import io
+    import wave
+    key = hashlib.sha1(f"{'slow' if slow else 'normal'}|{text}".encode()).hexdigest()
+    TTS_CACHE.mkdir(parents=True, exist_ok=True)
+    hit = TTS_CACHE / f"{key}.wav"
+    if hit.is_file():
+        return hit.read_bytes()
+    parts, genders = parse_script(text)
+    if not parts:
+        raise BadRequest("nothing to read")
+    rate, frames = 22050, []
+    if os.environ.get("EB_TTS_FAKE"):  # test hook: silence, 0.1 s per part
+        frames = [b"\0\0" * 2205 for _ in parts]
+    else:
+        from piper import SynthesisConfig
+        voices = assign_voices(parts, genders)
+        cfg = SynthesisConfig(length_scale=1.3 if slow else 1.05)
+        for spk, line in parts:
+            v = tts_voice(voices[spk])
+            rate = v.config.sample_rate
+            buf = io.BytesIO()
+            with TTS_LOCK, wave.open(buf, "wb") as w:
+                v.synthesize_wav(line, w, syn_config=cfg)
+            buf.seek(0)
+            with wave.open(buf, "rb") as r:
+                frames.append(r.readframes(r.getnframes()))
+    pause = b"\0\0" * int(rate * (0.7 if slow else 0.5))
+    out = io.BytesIO()
+    with wave.open(out, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes(pause.join(frames))
+    data = out.getvalue()
+    hit.write_bytes(data)
+    old = sorted(TTS_CACHE.glob("*.wav"), key=lambda p: p.stat().st_mtime)
+    for p in old[:-300]:  # keep the cache small
+        p.unlink(missing_ok=True)
+    return data
 
 
 # ---------------------------------------------------------------- git
@@ -1085,6 +1212,19 @@ class Handler(BaseHTTPRequestHandler):
                 traceback.print_exc()
                 return self._json({"error": f"Speech-to-text failed: {type(e).__name__}: {e}"}, 503)
         d = self._body()
+        if p == "/api/tts":  # {text, slow} → audio/wav (listening scripts and "Listen" in the chat)
+            if not tts_available():
+                return self._json({"error": "Local text-to-speech is not installed (use Docker, or pip install piper-tts)."}, 501)
+            text = str(d.get("text") or "").strip()
+            if not text or len(text) > MAX_TTS_CHARS:
+                raise BadRequest("text missing or too long")
+            try:
+                return self._send(200, synthesize(text, bool(d.get("slow"))), "audio/wav")
+            except BadRequest:
+                raise
+            except Exception as e:  # first voice download without network, broken model file, ...
+                traceback.print_exc()
+                return self._json({"error": f"Text-to-speech failed: {type(e).__name__}: {e}"}, 503)
         if p == "/api/chat/send":
             agent = d.get("agent") if d.get("agent") in ("claude", "codex") else "claude"
             text = str(d.get("text") or "").strip()
@@ -1236,6 +1376,16 @@ def main():
     print(f"  Speech-to-text: {'local Whisper (' + STT_MODEL + ')' if stt_available() else 'not installed (browser dictation only)'}", flush=True)
     if stt_available() and os.environ.get("STT_PRELOAD"):
         threading.Thread(target=stt_model, daemon=True).start()  # download/load the model in the background
+    print(f"  Text-to-speech: {'local Piper voices' if tts_available() else 'not installed (browser voice only)'}", flush=True)
+    if tts_available() and os.environ.get("TTS_PRELOAD") and not os.environ.get("EB_TTS_FAKE"):
+        def preload_voices():
+            for v in TTS_VOICES["f"] + TTS_VOICES["m"]:
+                try:
+                    tts_voice(v)
+                except Exception as e:  # offline on first start: voices download on first Play instead
+                    print(f"  Voice {v} not ready: {e}", flush=True)
+                    return
+        threading.Thread(target=preload_voices, daemon=True).start()
     if not a.no_browser:
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:

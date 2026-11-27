@@ -32,4 +32,6 @@ assert(/<pre><code>a &lt; b<\/code><\/pre>/.test(render("```\na < b\n```")));
 // ```listen blocks become a Play button with a hidden, escaped transcript
 const ls = render("```listen\nA: Hi <b>Tom</b>.\nB: Hello!\n```");
 assert(/class="listen"/.test(ls) && /listen-play/.test(ls) && /<details>/.test(ls) && /Hi &lt;b&gt;Tom&lt;\/b&gt;\.<br>B: Hello!/.test(ls), ls);
+const lv = render('```listen\nvoices: Mia=f, "Jo"=m\nMia: Hi!\n```');
+assert(/data-script="voices: Mia=f, &quot;Jo&quot;=m\nMia: Hi!"/.test(lv) && !/<p>voices/.test(lv) && /listen-slow/.test(lv), lv);
 console.log("md ok");

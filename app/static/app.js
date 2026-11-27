@@ -439,16 +439,53 @@
   }
 
   /* ---------------- voice: listen ---------------- */
-  function speak(text) {
-    if (!("speechSynthesis" in window)) return toast("This browser cannot read text aloud.", 2600, "bad");
-    if (speechSynthesis.speaking) { speechSynthesis.cancel(); return; }
-    const words = text.replace(MARK, "").replace(/```[\s\S]*?```/g, "").replace(/[*_`#>|]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(EMOJI_ANY, "");
+  // Real audio from the app's local voices (Piper, on the server). Browsers on Linux often have no
+  // speech voices at all, so the browser's own speechSynthesis is only a fallback.
+  async function ttsUrl(text, slow) {
+    const r = await post("/api/tts", { text, slow: !!slow });
+    if (!r.ok) { let m = ""; try { m = (await r.json()).error; } catch { /* audio or text */ } throw Object.assign(new Error(m || r.statusText), { status: r.status }); }
+    return URL.createObjectURL(await r.blob());
+  }
+  let chatAudio = null;
+  async function speak(text) {
+    const words = text.replace(MARK, "").replace(/```[\s\S]*?```/g, "").replace(/[*_`#>|]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(EMOJI_ANY, "").trim();
+    if (chatAudio && !chatAudio.paused) { chatAudio.pause(); chatAudio = null; return; }
+    if ("speechSynthesis" in window && speechSynthesis.speaking) { speechSynthesis.cancel(); return; }
+    if (S.state?.tts !== false) {
+      try { chatAudio = new Audio(await ttsUrl(words.slice(0, 4800))); await chatAudio.play(); return; }
+      catch (e) { if (e.status !== 501) toast(String(e.message || e), 3200, "bad"); }
+    }
+    browserSpeak(words);
+  }
+  function browserSpeak(words) {
+    if (!("speechSynthesis" in window)) return toast("No voice available to read this aloud.", 3200, "bad");
     const u = new SpeechSynthesisUtterance(words);
     u.lang = "en-US";
     const v = speechSynthesis.getVoices().find((x) => x.lang === "en-US") || speechSynthesis.getVoices().find((x) => x.lang.startsWith("en"));
     if (v) u.voice = v;
     u.rate = 0.95;
     speechSynthesis.speak(u);
+  }
+
+  // ```listen block in a unit or practice set: Play / Slow load the audio once, then a normal player
+  // (pause, seek, replay) stays in the block.
+  function wireListen(el) {
+    const box = $(".listen-audio", el), script = el.dataset.script || "";
+    const load = async (slow, btn) => {
+      const label = btn.textContent;
+      btn.disabled = true; btn.innerHTML = `<span class="spinner"></span>`;
+      try {
+        const a = document.createElement("audio");
+        a.controls = true; a.src = await ttsUrl(script, slow); a.preload = "auto";
+        box.innerHTML = ""; box.appendChild(a);
+        await a.play().catch(() => {});
+      } catch (e) {
+        if (e.status === 501) browserSpeak($("details p", el).innerText);
+        else toast(String(e.message || e), 4000, "bad");
+      } finally { btn.disabled = false; btn.textContent = label; }
+    };
+    $(".listen-play", el).onclick = (e) => load(false, e.currentTarget);
+    $(".listen-slow", el).onclick = (e) => load(true, e.currentTarget);
   }
 
   /* ---------------- voice: speak (mic) ----------------
@@ -697,7 +734,7 @@
         <button class="btn sm" id="ex-check">Check</button></div>`;
     const doc = $("#unit-doc");
     wireDocLinks(doc, isP ? `materials/generated/practice/${id}.md` : `materials/grammar/${id}.md`);
-    $$(".listen", doc).forEach((el) => { $(".listen-play", el).onclick = () => speak($("details p", el).innerText); });
+    $$(".listen", doc).forEach(wireListen);
     const draft = store.get(`ans:${id}`, {});
     let inEx = false;
     [...doc.children].forEach((node) => {

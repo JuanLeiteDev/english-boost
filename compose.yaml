@@ -29,6 +29,7 @@ services:
       - codex-home:/home/student/.codex       # Codex login + sessions
       - gh-config:/home/student/.config/gh    # GitHub login (optional)
       - stt-models:/home/student/.cache/whisper  # Whisper model for the microphone (downloaded once)
+      - tts-models:/home/student/.cache/piper    # Piper voices for listening audio (downloaded once)
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8765/api/health', timeout=3)"]
       interval: 30s
@@ -43,3 +44,4 @@ volumes:
   codex-home:
   gh-config:
   stt-models:
+  tts-models:

@@ -44,12 +44,17 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.
 ARG FASTER_WHISPER_VERSION=1.1.1
 RUN pip install --no-cache-dir "faster-whisper==${FASTER_WHISPER_VERSION}" "av==13.1.0"
 
+# Local text-to-speech for listening scripts and "Listen" in the chat (Piper, CPU, American voices).
+# Voices are downloaded on first start into the tts-models volume (TTS_PRELOAD), then work offline.
+ARG PIPER_VERSION=1.8.0
+RUN pip install --no-cache-dir "piper-tts==${PIPER_VERSION}"
+
 COPY docker/entrypoint.sh /usr/local/bin/eb-entrypoint
 RUN sed -i 's/\r$//' /usr/local/bin/eb-entrypoint && chmod 0755 /usr/local/bin/eb-entrypoint
 
 # Non-root user (UID/GID match the host on Linux so files in the project stay yours)
 RUN groupadd -g "${GID}" student && useradd -m -u "${UID}" -g "${GID}" -s /bin/bash student \
- && mkdir -p /home/student/.claude /home/student/.codex /home/student/.config/gh /home/student/.cache/whisper \
+ && mkdir -p /home/student/.claude /home/student/.codex /home/student/.config/gh /home/student/.cache/whisper /home/student/.cache/piper \
  && chown -R student:student /home/student
 USER student
 
@@ -62,6 +67,8 @@ ENV PATH=/home/student/.local/bin:$PATH \
     CODEX_SANDBOX=danger-full-access \
     STT_PRELOAD=1 \
     STT_MODELS_DIR=/home/student/.cache/whisper \
+    TTS_PRELOAD=1 \
+    TTS_MODELS_DIR=/home/student/.cache/piper \
     PYTHONUNBUFFERED=1
 WORKDIR /workspace
 EXPOSE 8765

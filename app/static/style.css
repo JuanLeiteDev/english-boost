@@ -527,7 +527,12 @@ html.theming, html.theming *, html.theming *::before, html.theming *::after { tr
 .pset .row-end { margin-top: auto; padding-top: 6px; }
 /* ```listen blocks in practice sets: the app reads the script aloud */
 .listen { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin: 12px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--raised); }
-.listen details { flex: 1; min-width: 200px; }
+.listen-btns { display: flex; gap: 8px; }
+.listen-btns .btn { min-width: 64px; }
+.listen-audio { flex: 1 1 260px; min-width: 0; }
+.listen-audio:empty { display: none; }
+.listen-audio audio { width: 100%; height: 36px; display: block; }
+.listen details { flex: 1 1 100%; }
 .listen summary { cursor: pointer; color: var(--muted); font: 500 12.5px var(--mono); }
 .listen details p { margin: 10px 0 0; }
 

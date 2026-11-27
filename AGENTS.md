@@ -20,7 +20,7 @@ Shared instructions for **Codex** (reads `AGENTS.md`) and **Claude Code** (reads
 - Keep lessons moving: offer at most one retry or rewrite, then give brief feedback and continue. Do not require perfect answers. Move on sooner if Juan asks.
 - **Files for Juan** (results, feedback, plans, units) are short and in simple English: essentials only, no long paragraphs.
 - Be honest about the level. Never inflate a CEFR estimate to motivate.
-- When you send Juan to an online test or exercise, give the direct link to the test itself. Do not send a preparation page and ask him to find the test. Use `[[open:url:https://…]]` for the direct link in the web app.
+- When you send Juan to an online test or exercise, give the direct link to the test itself. Do not send a preparation page and ask him to find the test. Use `[[open:url:https://…]]` for the direct link in the web app. Verified direct links live in `resources/exercise-links.md`; add a new one there only after checking that the exercise or audio is on that page.
 
 ## Project map
 
@@ -33,6 +33,7 @@ Shared instructions for **Codex** (reads `AGENTS.md`) and **Claude Code** (reads
 | `materials/official/` | Cambridge sample papers. **Not in git**: run `python3 scripts/fetch_official_materials.py` (Docker does this automatically). |
 | `materials/generated/` | Readings, worksheets and scenario cards created by the skills. Practice sets (`practice-builder`) go in `materials/generated/practice/`, with keys in `practice/answers/`. |
 | `resources/catalog.md` | Curated, verified external resources (links checked on 2026-11-24). |
+| `resources/exercise-links.md` | Direct links to exercises, audio and tests (the page itself, never an index). The only links `practice-builder` may use. |
 | `research/` | The evidence base for the plan (literature review and curriculum comparison). |
 | `assessments/` | Diagnostic, checkpoints and graded writing/speaking (english-examiner). |
 | `progress/log.md` | One line per study session. |
@@ -49,7 +50,7 @@ All skills live in `.agents/skills/`, the single source. Codex reads them from t
 |---|---|---|
 | "What do I do today?", start or close a session, weekly review, adapt the plan | **daily-study-planner** (custom) | Orchestrator. It reads the plan and progress, then routes to the other skills. |
 | Diagnostic / checkpoint / grade a writing or speaking sample against the CEFR | **english-examiner** (custom) | Uses Cambridge B1/B2 assessment criteria. Writes to `assessments/` and the error log. |
-| Extra practice beyond the plan (choices from the app's Practice page, or "more exercises on X") | **practice-builder** (custom) | Writes `materials/generated/practice/<ID>.md` + hidden key in `answers/`, then `[[open:practice:<ID>]]`. Never touches the grammar spine. |
+| Extra practice beyond the plan (choices from the app's Practice page, or "more exercises on X") | **practice-builder** (custom) | Writes `materials/generated/practice/<ID>.md` + hidden key in `answers/`, must pass `python3 scripts/check_practice.py <ID>`, then `[[open:practice:<ID>]]`. Never touches the grammar spine. |
 | Conversation, role-plays (Erasmus situations), fluency, pronunciation | **speaking-coach** (custom) | Works from transcripts (voice dictation) and prepares shadowing scripts. |
 | Initial placement profile | `langtutor-assessor` | Run once on day 1, then `english-examiner` handles checkpoints. |
 | Interactive mini-lesson (grammar in context, reading, listening) | `langtutor-session` | Uses the profile in `Language-Tutor/learner-data/english/`. |

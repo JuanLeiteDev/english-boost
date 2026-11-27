@@ -35,7 +35,11 @@
         while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
         i++;
         // ```listen: a script the app reads aloud (listening practice); the text stays hidden until asked
-        if (/^```\s*listen\b/i.test(l)) out.push(`<div class="listen"><button type="button" class="btn sm listen-play">Play</button><details><summary>Show transcript</summary><p>${esc(buf.join("\n")).replace(/\n/g, "<br>")}</p></details></div>`);
+        // (an optional first line "voices: Mia=f, Jack=m" tells the server which voice each speaker gets)
+        if (/^```\s*listen\b/i.test(l)) {
+          const script = buf.join("\n"), shown = buf.filter((x, k) => !(k === 0 && /^\s*voices\s*:/i.test(x))).join("\n");
+          out.push(`<div class="listen" data-script="${esc(script).replace(/"/g, "&quot;")}"><div class="listen-btns"><button type="button" class="btn sm listen-play">Play</button><button type="button" class="btn sm ghost listen-slow">Slow</button></div><div class="listen-audio"></div><details><summary>Show transcript</summary><p>${esc(shown).replace(/\n/g, "<br>")}</p></details></div>`);
+        }
         else out.push(`<pre><code>${esc(buf.join("\n"))}</code></pre>`);
         continue;
       }

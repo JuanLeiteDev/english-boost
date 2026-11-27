@@ -101,6 +101,51 @@ class TestPracticeSets(unittest.TestCase):
             self.assertEqual(sorted(scored), list(range(1, len(scored) + 1)), f"{pid}: numbering gaps")
 
 
+class TestPracticeChecker(unittest.TestCase):
+    """scripts/check_practice.py: the gold example passes; a weak set (answer in brackets, few items, home-page link) fails."""
+
+    def setUp(self):
+        import tempfile
+        import check_practice as cp
+        self.cp, self.old = cp, cp.PRACTICE
+        self.tmp = Path(tempfile.mkdtemp(prefix="eb-practice-"))
+        (self.tmp / "answers").mkdir()
+        cp.PRACTICE = self.tmp
+
+    def tearDown(self):
+        import shutil
+        self.cp.PRACTICE = self.old
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def put(self, pid, md, key):
+        (self.tmp / f"{pid}.md").write_text(md, encoding="utf-8")
+        (self.tmp / "answers" / f"{pid}.md").write_text(key, encoding="utf-8")
+
+    def test_gold_example_passes(self):
+        ref = REPO / ".agents" / "skills" / "practice-builder" / "references"
+        self.put("2026-11-27-gold", (ref / "example-set.md").read_text(encoding="utf-8"), (ref / "example-key.md").read_text(encoding="utf-8"))
+        errors, _ = self.cp.check("2026-11-27-gold", 20, {"vocabulary", "listening"}, online=False)
+        self.assertEqual(errors, [])
+
+    def test_weak_set_fails(self):
+        md = ("# Weak\n\n## 2. Practice · Vocabulary\n### A · Fill\n1. Do you want to ___ out? (hang)\n2. I ___ up for the club. (sign)\n"
+              "### B · Choose\n3. I ___ friends. (make / do / take)\n\n## 3. Practice · Listening\n```listen\nMia: Hi! Party on Saturday?\nJack: Yes!\n```\n"
+              "4. What day is the party?\n\n## Extra materials\n- [News](https://breakingnewsenglish.com/)\n")
+        self.put("2026-11-27-weak", md, "1. hang\n2. sign\n3. make\n4. Saturday\n")
+        errors, _ = self.cp.check("2026-11-27-weak", 20, {"vocabulary", "listening"}, online=False)
+        text = "\n".join(errors)
+        for must in ("item 1: the answer 'hang'", "item 2: the answer 'sign'", "only 4 scored items", "listening script 1 has",
+                     "link not in resources/exercise-links.md"):
+            self.assertIn(must, text)
+        self.assertNotIn("item 3:", text)  # options in brackets are fine
+
+    def test_exercise_links_are_direct(self):
+        urls = self.cp.allowed_links()
+        self.assertGreater(len(urls), 60)
+        for u in urls:
+            self.assertRegex(u, r"^https://[^/]+/.+", f"{u}: a home page is not a direct exercise link")
+
+
 class TestPlan(unittest.TestCase):
     def test_grammar_spine(self):
         spine = bd.load_spine()

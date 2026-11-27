@@ -465,6 +465,69 @@ class TestSpeechToTextMissing(ServerTestCase):
         self.assertIn("speech-to-text", json.loads(raw)["error"])
 
 
+class TestTextToSpeech(ServerTestCase):
+    env = {"EB_TTS_FAKE": "1"}
+
+    def test_tts_returns_wav_and_caches(self):
+        self.assertTrue(self.srv.get_json("/api/state")["tts"])
+        script = "voices: Mia=f, Jack=m\nMia: Hi, Jack!\nJack: Hello!"
+        st, raw = self.srv.request("POST", "/api/tts", body={"text": script}, headers={"X-Token": self.srv.token})
+        self.assertEqual(st, 200)
+        self.assertEqual(raw[:4], b"RIFF")
+        self.assertEqual(raw[8:12], b"WAVE")
+        cached = list((self.root / "app" / "state" / "tts-cache").glob("*.wav"))
+        self.assertEqual(len(cached), 1)
+        st2, raw2 = self.srv.request("POST", "/api/tts", body={"text": script}, headers={"X-Token": self.srv.token})
+        self.assertEqual((st2, raw2), (200, raw))
+
+    def test_tts_needs_token_and_text(self):
+        self.assertEqual(self.srv.request("POST", "/api/tts", body={"text": "Hi"})[0], 403)
+        self.assertEqual(self.srv.post("/api/tts", {"text": " "})[0], 400)
+        self.assertEqual(self.srv.post("/api/tts", {"text": "a" * 6000})[0], 400)
+
+
+class TestTextToSpeechMissing(ServerTestCase):
+    def test_clear_error_when_piper_is_missing(self):
+        if self.srv.get_json("/api/state")["tts"]:
+            self.skipTest("piper-tts is installed here")
+        st, body = self.srv.post("/api/tts", {"text": "Hello"})
+        self.assertEqual(st, 501)
+        self.assertIn("text-to-speech", body["error"])
+
+
+class TestScriptVoices(unittest.TestCase):
+    """Dialogue parsing and voice choice (pure functions, imported from app/server.py)."""
+
+    @classmethod
+    def setUpClass(cls):
+        old = os.environ.get("EB_STATE_DIR")
+        os.environ["EB_STATE_DIR"] = tempfile.mkdtemp(prefix="eb-state-")  # never write into the real app/state
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "app"))
+        try:
+            import server
+        finally:  # later test servers must not inherit it
+            os.environ.pop("EB_STATE_DIR") if old is None else os.environ.__setitem__("EB_STATE_DIR", old)
+        cls.s = server
+
+    def test_parse_speakers_and_genders(self):
+        parts, g = self.s.parse_script("voices: Mia=female, Prof Lee=m\nMia: Hi!\nit is late.\nProf Lee: Good morning.\n")
+        self.assertEqual(parts, [("Mia", "Hi! it is late."), ("Prof Lee", "Good morning.")])
+        self.assertEqual(g, {"mia": "f", "prof lee": "m"})
+        self.assertEqual(self.s.parse_script("Just one paragraph.\nSecond line.")[0], [(None, "Just one paragraph. Second line.")])
+
+    def test_each_speaker_gets_a_fitting_voice(self):
+        F, M = self.s.TTS_VOICES["f"], self.s.TTS_VOICES["m"]
+        parts, g = self.s.parse_script("Tom: Hi.\nAnna: Hello.\nMrs Smith: Welcome.\nZork: Beep.\nTom: Bye.")
+        v = self.s.assign_voices(parts, g)
+        self.assertIn(v["Tom"], M)
+        self.assertIn(v["Anna"], F)
+        self.assertIn(v["Mrs Smith"], F)
+        self.assertNotEqual(v["Anna"], v["Mrs Smith"])  # two women, two voices
+        self.assertIn(v["Zork"], M)  # unknown name: alternates after a woman
+        parts, g = self.s.parse_script("voices: Sam=f\nSam: Hi.")
+        self.assertIn(self.s.assign_voices(parts, g)["Sam"], F)  # stated gender wins
+
+
 class TestPortInUse(ServerTestCase):
     def test_second_instance_fails_cleanly(self):
         p = subprocess.run([sys.executable, str(self.root / "app" / "server.py"), "--port", str(self.srv.port), "--no-browser"],
