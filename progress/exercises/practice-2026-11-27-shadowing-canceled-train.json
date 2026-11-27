@@ -1,0 +1,94 @@
+{
+ "id": "2026-11-27-shadowing-canceled-train",
+ "date": "2026-11-27",
+ "pct": 82,
+ "score": 14,
+ "total": 17,
+ "items": [
+  {
+   "n": "1",
+   "answer": "the 8:15 to Ghent",
+   "ok": true
+  },
+  {
+   "n": "2",
+   "answer": "Platform 3",
+   "ok": true
+  },
+  {
+   "n": "3",
+   "answer": "He thinks they will be late for class",
+   "ok": true
+  },
+  {
+   "n": "4",
+   "answer": "She thinks they will arrive before the lecture",
+   "ok": true
+  },
+  {
+   "n": "5",
+   "answer": "to",
+   "ok": true
+  },
+  {
+   "n": "6",
+   "answer": "hold, bag",
+   "ok": true
+  },
+  {
+   "n": "7",
+   "answer": "Nina is making her point strongly",
+   "ok": true
+  },
+  {
+   "n": "8",
+   "answer": "LEC-ture",
+   "ok": true
+  },
+  {
+   "n": "9",
+   "answer": "/fər/, short",
+   "ok": true
+  },
+  {
+   "n": "10",
+   "answer": "\"gimme\"",
+   "ok": true
+  },
+  {
+   "n": "11",
+   "answer": "/kən/ (weak)",
+   "ok": true
+  },
+  {
+   "n": "12",
+   "answer": "almost silent (a short stop)",
+   "ok": true
+  },
+  {
+   "n": "13",
+   "answer": "/d/",
+   "ok": true
+  },
+  {
+   "n": "14",
+   "answer": "two",
+   "ok": true
+  },
+  {
+   "n": "1",
+   "answer": "",
+   "ok": false
+  },
+  {
+   "n": "2",
+   "answer": "",
+   "ok": false
+  },
+  {
+   "n": "3",
+   "answer": "",
+   "ok": false
+  }
+ ]
+}

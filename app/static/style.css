@@ -291,6 +291,11 @@ li.wrong .choice.is-key { border-color: color-mix(in srgb, var(--good) 55%, tran
 .prod textarea { width: 100%; min-height: 120px; border: 1px solid var(--line); background: var(--raised); color: var(--fg); border-radius: var(--r-m); padding: 12px 14px; line-height: 1.6; resize: vertical; transition: border-color var(--d1); }
 .prod textarea:focus { border-color: var(--signal); }
 .prod textarea:focus-visible { outline: none; }
+.prod .row-end { align-items: center; gap: 8px; }
+.prod-rec { display: none; margin-right: auto; align-items: center; gap: 8px; font: 500 11.5px var(--mono); color: var(--signal); }
+.prod-rec.on { display: inline-flex; animation: fade var(--d2) var(--ease); }
+.prod-mic.rec { color: var(--signal); border-color: var(--signal); animation: rec 1.2s infinite; }
+.prod-mic.busy { color: var(--signal); }
 .ex-bar {
   position: sticky; bottom: -72px; margin: 34px auto -72px; padding: 14px 0 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
   background: linear-gradient(to bottom, transparent, var(--bg) 22%); border-top: 1px solid var(--line);
@@ -409,16 +414,8 @@ li.wrong .choice.is-key { border-color: color-mix(in srgb, var(--good) 55%, tran
 .step { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 3px 0; font: 500 11.5px var(--mono); color: var(--subtle); }
 .step .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .step .i { color: var(--good); }
-.tprog { display: grid; gap: 8px; padding: 6px 0 4px; min-width: min(280px, 100%); }
-.tprog-top { display: flex; align-items: center; gap: 8px; font: 500 12px var(--mono); color: var(--muted); }
-.tprog-top .spinner { color: var(--signal); }
-.tprog-top .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); }
-.tprog-top .n { color: var(--subtle); flex: none; }
-.tprog-bar { position: relative; height: 4px; border-radius: 99px; background: var(--line); overflow: hidden; }
-.tprog-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--signal); transition: width .9s var(--ease); overflow: hidden; }
-.tprog-bar > span::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 45%, transparent), transparent); animation: tprog-shine 1.4s linear infinite; }
-@keyframes tprog-shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
-@media (prefers-reduced-motion: reduce) { .tprog-bar > span::after { animation: none; } }
+.chat-loading { display: inline-flex; padding: 8px 0; color: var(--signal); }
+.chat-loading .spinner { width: 16px; height: 16px; border-width: 2px; }
 .typing { display: inline-flex; gap: 5px; padding: 8px 0; }
 .typing i { width: 5px; height: 5px; background: var(--signal); animation: blink 1.1s infinite var(--ease-io); }
 .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }

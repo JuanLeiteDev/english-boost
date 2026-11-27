@@ -327,16 +327,9 @@
     const tools = $(".tools", el);
     const list = m.tools || [];
     const text = (m.text || "").replace(MARK, "").replace(/\n{3,}/g, "\n\n").trim();
-    const working = live && list.length > 0;  // the tutor is doing work: show progress, not its notes
+    const working = live && list.length > 0;  // the tutor is doing work: only a spinner, not its notes
     if (working) {
-      const sec = Math.floor((Date.now() - (m.started || Date.now())) / 1000);
-      const writing = !!text;  // text after the last step is the final reply being written
-      const pct = writing ? 96 : Math.round(6 + 86 * (1 - Math.exp(-(list.length + sec / 15) / 10)));
-      tools.innerHTML = `<div class="tprog" title="${esc(list.join("\n"))}">
-          <div class="tprog-top"><span class="spinner"></span><span class="t">${esc(writing ? "Writing the reply" : stepLabel(list[list.length - 1]))}</span>
-            <span class="n">${list.length} step${list.length > 1 ? "s" : ""} · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}</span></div>
-          <div class="tprog-bar" role="progressbar" aria-label="Tutor is working"><span style="width:${pct}%"></span></div>
-        </div>`;
+      tools.innerHTML = `<span class="chat-loading" role="status" aria-label="The tutor is working"><span class="spinner"></span></span>`;
     } else {
       tools.innerHTML = list.length
         ? `<span class="step" title="${esc(list.join("\n"))}">${ic("check", "sm")}<span class="t">${esc(stepLabel(list[list.length - 1]))}</span>${list.length > 1 ? `<span>· ${list.length} steps</span>` : ""}</span>`
@@ -415,7 +408,7 @@
     const box = $("#msgs");
     $(".welcome", box)?.remove();
     box.appendChild(msgEl({ role: "user", text }));
-    const m = { role: "assistant", text: "", tools: [], agent: S.agent, started: Date.now() };
+    const m = { role: "assistant", text: "", tools: [], agent: S.agent };
     const el = msgEl(m);
     fillAssistant(el, m, true);
     box.appendChild(el);
@@ -426,7 +419,6 @@
     const opened = new Set();
     let raf = 0, finished = false;
     const paint = () => { raf = 0; if (finished) return; fillAssistant(el, m, true); fw.pin(); };
-    const tick = setInterval(() => { if (m.tools.length && !raf) raf = requestAnimationFrame(paint); }, 1000);  // progress clock
     const addErr = (msg) => { const e = document.createElement("div"); e.className = "err"; e.innerHTML = `${ic("alert", "sm")}<span></span>`; $("span", e).textContent = msg; $(".bubble", el).appendChild(e); fw.pin(); hooks.error?.(msg); };
     try {
       const r = await post("/api/chat/send", { agent: S.agent, text });
@@ -460,7 +452,6 @@
       addErr(String(e.message || e));
     } finally {
       finished = true;
-      clearInterval(tick);
       if (raf) cancelAnimationFrame(raf);
       setRunning(false);
       fillAssistant(el, m, false);
@@ -527,98 +518,112 @@
 
   /* ---------------- voice: speak (mic) ----------------
      1) record in the browser + local Whisper on the server (any browser, private, offline)
-     2) otherwise the browser's own dictation (Chrome/Edge)                               */
+     2) otherwise the browser's own dictation (Chrome/Edge)
+     One recording at a time. A target is { ta, btn, bar(on, html) }: the chat composer by default,
+     or a "Your turn" box in a unit / practice set.                                          */
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let media = null, micBusy = false, rec = null;
+  let media = null, micBusy = false, rec = null, mic = null;
   const canRecord = () => !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
   function recBar(on, html = "") {
     $("#rec-bar").classList.toggle("on", on);
     if (html) $("#rec-text").innerHTML = html;
   }
-  function appendToInput(text) {
-    const i = $("#input");
+  const chatMic = () => ({ ta: $("#input"), btn: $("#btn-mic"), bar: recBar });
+  function appendToInput(text, t = mic || chatMic()) {
+    const i = t.ta;
     i.value = (i.value.trim() ? i.value.trimEnd() + " " : "") + text.trim();
-    i.focus(); autoGrow();
+    i.dataset.voice = "1";
+    i.focus(); i.dispatchEvent(new Event("input"));  // grows the chat box / saves the exercise draft
   }
-  async function toggleMic() {
+  async function toggleMic(target) {
+    const t = target && target.ta ? target : chatMic();
     if (micBusy) return;
-    if (media) return stopRecording();
-    if (rec) { rec.stop(); return; }
+    if (media || rec) {
+      const same = mic && mic.ta === t.ta;
+      if (media) stopRecording(); else rec.stop();
+      if (same) return;  // a second press on the same mic only stops it
+      return toast("Stopped the other recording. Press the mic again to record here.", 3000);
+    }
+    mic = t;
     if (S.state?.stt && canRecord()) return startRecording();
     if (SR) return startDictation();
+    mic = null;
     if (!canRecord()) return toast("This browser cannot use the microphone here.", 3600, "bad");
     toast("Voice input needs local speech-to-text (Docker app) or Chrome/Edge.", 4200, "bad");
   }
   async function startRecording() {
+    const t = mic;
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
-    catch { return toast("The microphone is blocked. Allow it in the browser.", 4000, "bad"); }
-    const type = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/mp4", "audio/webm"].find((t) => window.MediaRecorder.isTypeSupported?.(t)) || "";
+    catch { mic = null; return toast("The microphone is blocked. Allow it in the browser.", 4000, "bad"); }
+    const type = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/mp4", "audio/webm"].find((x) => window.MediaRecorder.isTypeSupported?.(x)) || "";
     let mr;
     try { mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined); }
-    catch { stream.getTracks().forEach((t) => t.stop()); return toast("Could not start recording.", 3000, "bad"); }
+    catch { stream.getTracks().forEach((x) => x.stop()); mic = null; return toast("Could not start recording.", 3000, "bad"); }
     const chunks = [];
     mr.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
     mr.onstop = () => {
-      stream.getTracks().forEach((t) => t.stop());
+      stream.getTracks().forEach((x) => x.stop());
       const blob = new Blob(chunks, { type: mr.mimeType || type || "audio/webm" });
-      if (blob.size < 800) { recBar(false); return toast("Too short. Speak a bit longer.", 2600, "bad"); }
-      transcribe(blob);
+      if (blob.size < 800) { t.bar(false); if (mic === t) mic = null; return toast("Too short. Speak a bit longer.", 2600, "bad"); }
+      transcribe(blob, t);
     };
     mr.start(250);
     const t0 = Date.now();
     media = { mr, iv: setInterval(() => {
       const s = Math.floor((Date.now() - t0) / 1000);
-      recBar(true, `Recording ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} · press the mic to stop`);
+      t.bar(true, `Recording ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} · press the mic to stop`);
       if (s >= 120) stopRecording();
     }, 250) };
-    $("#btn-mic").classList.add("rec");
-    recBar(true, "Recording 0:00 · press the mic to stop");
+    t.btn.classList.add("rec");
+    t.bar(true, "Recording 0:00 · press the mic to stop");
   }
   function stopRecording() {
     if (!media) return;
     clearInterval(media.iv);
     try { media.mr.stop(); } catch { /* already stopped */ }
     media = null;
-    $("#btn-mic").classList.remove("rec");
+    mic?.btn.classList.remove("rec");
   }
-  async function transcribe(blob) {
+  async function transcribe(blob, t) {
     micBusy = true;
-    $("#btn-mic").classList.add("busy");
-    recBar(true, `<span class="spinner"></span> Writing down what you said…`);
+    t.btn.classList.add("busy");
+    t.bar(true, `<span class="spinner"></span> Writing down what you said…`);
     try {
       const r = await post("/api/transcribe", null, true, blob);
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.error || r.statusText);
-      if (d.text) appendToInput(d.text);
+      if (d.text) appendToInput(d.text, t);
       else toast("I could not hear any words. Try again, closer to the mic.", 3200, "bad");
     } catch (e) {
       toast(String(e.message || e), 4200, "bad");
     } finally {
       micBusy = false;
-      $("#btn-mic").classList.remove("busy");
-      recBar(false);
+      t.btn.classList.remove("busy");
+      t.bar(false);
+      if (mic === t) mic = null;
     }
   }
   function startDictation() {
+    const t = mic;
     rec = new SR();
     rec.lang = "en-US"; rec.continuous = true; rec.interimResults = true;
-    const input = $("#input");
+    const input = t.ta;
     const base = input.value ? input.value.trimEnd() + " " : "";
     rec.onresult = (e) => {
       let s = "";
       for (let i = 0; i < e.results.length; i++) s += e.results[i][0].transcript;
-      input.value = base + s; autoGrow();
+      input.value = base + s; input.dataset.voice = "1"; input.dispatchEvent(new Event("input"));
     };
-    rec.onend = () => { rec = null; $("#btn-mic").classList.remove("rec"); recBar(false); };
+    rec.onend = () => { rec = null; t.btn.classList.remove("rec"); t.bar(false); if (mic === t) mic = null; };
     rec.onerror = (e) => {
       const msg = e.error === "network" ? "Browser dictation needs Google's servers and is not working here. Use the Docker app for local speech-to-text."
         : e.error === "not-allowed" || e.error === "service-not-allowed" ? "The microphone is blocked. Allow it in the browser." : `Microphone: ${e.error}`;
       toast(msg, 5200, "bad");
     };
     rec.start();
-    $("#btn-mic").classList.add("rec");
-    recBar(true, "Listening · press the mic to stop");
+    t.btn.classList.add("rec");
+    t.bar(true, "Listening · press the mic to stop");
   }
 
   /* ---------------- workspace tabs ---------------- */
@@ -773,12 +778,18 @@
     wireDocLinks(doc, isP ? `materials/generated/practice/${id}.md` : `materials/grammar/${id}.md`);
     $$(".listen", doc).forEach(wireListen);
     const draft = store.get(`ans:${id}`, {});
-    let inEx = false;
+    let inEx = false, inTurn = false, nTurn = 0;
+    const seenN = new Set();
     [...doc.children].forEach((node) => {
       if (node.tagName === "H2") inEx = /practi|exerc/i.test(node.textContent);
+      if (/^H[23]$/.test(node.tagName)) inTurn = node.tagName === "H3" && /your turn|produ/i.test(node.textContent);
       if (!inEx) return;
-      if (node.tagName === "OL") $$("li[data-n]", node).forEach((li) => {
+      // "Your turn" steps are instructions, not questions (scripts/check_practice.py skips them too);
+      // a repeated number would share its saved answer and its key line with an earlier item.
+      if (node.tagName === "OL" && !inTurn) $$("li[data-n]", node).forEach((li) => {
         const n = li.dataset.n;
+        if (seenN.has(n)) return;
+        seenN.add(n);
         const save = (v) => { const d = store.get(`ans:${id}`, {}); d[n] = v; store.set(`ans:${id}`, d); };
         const inp = document.createElement("input");
         inp.className = "ex-input"; inp.dataset.n = n; inp.value = draft[n] || "";
@@ -811,12 +822,23 @@
       if (node.tagName === "H3" && /your turn|produ/i.test(node.textContent)) {
         const wrap = document.createElement("div");
         wrap.className = "prod";
-        wrap.innerHTML = `<textarea placeholder="Write here in English"></textarea><div class="row-end"><button class="btn sm ghost">${ic("pen", "sm")}Send to the tutor</button></div>`;
-        const ta = $("textarea", wrap);
-        ta.value = draft.prod || "";
-        ta.oninput = () => { const d = store.get(`ans:${id}`, {}); d.prod = ta.value; store.set(`ans:${id}`, d); };
-        $("button", wrap).onclick = () => ta.value.trim() ? send(`${isP ? "Practice set" : "Unit"} ${id}, "${node.textContent.trim()}". Please check it and focus on the grammar of the ${isP ? "practice set" : "unit"} (english-examiner, quick mode):\n\n${ta.value.trim()}`) : toast("Write something first.", 2200, "bad");
-        let anchor = node; while (anchor.nextElementSibling && !/^H[23]$/.test(anchor.nextElementSibling.tagName) && anchor.nextElementSibling.tagName !== "OL") anchor = anchor.nextElementSibling;
+        const speaking = /speak/i.test(node.textContent);
+        const key = nTurn++ ? `prod${nTurn}` : "prod";  // each "Your turn" box keeps its own draft
+        wrap.innerHTML = `<textarea placeholder="${speaking ? "Press the mic and speak, or write here" : "Write here in English, or press the mic and speak"}"></textarea>
+          <div class="row-end"><span class="prod-rec"></span>
+            <button class="btn sm quiet prod-mic" title="Speak (English)" aria-label="Speak">${ic("mic", "sm")}<span>Speak</span></button>
+            <button class="btn sm ghost prod-send">${ic("pen", "sm")}Send to the tutor</button></div>`;
+        const ta = $("textarea", wrap), recEl = $(".prod-rec", wrap);
+        ta.value = draft[key] || "";
+        ta.oninput = () => { const d = store.get(`ans:${id}`, {}); d[key] = ta.value; store.set(`ans:${id}`, d); };
+        const target = { ta, btn: $(".prod-mic", wrap), bar: (on, html) => { recEl.classList.toggle("on", on); if (html) recEl.innerHTML = html; } };
+        $(".prod-mic", wrap).onclick = () => toggleMic(target);
+        $(".prod-send", wrap).onclick = () => {
+          const said = ta.dataset.voice ? " I said it with the microphone, so this is a transcript (check what I said, not the punctuation)." : "";
+          ta.value.trim() ? send(`${isP ? "Practice set" : "Unit"} ${id}, "${node.textContent.trim()}".${said} Please check it and focus on the ${speaking ? "speaking task" : `grammar of the ${isP ? "practice set" : "unit"}`} (english-examiner, quick mode):\n\n${ta.value.trim()}`)
+            : toast("Write or say something first.", 2200, "bad");
+        };
+        let anchor = node; while (anchor.nextElementSibling && !/^H[23]$/.test(anchor.nextElementSibling.tagName)) anchor = anchor.nextElementSibling;  // after the whole task card
         anchor.after(wrap);
       }
     });
@@ -1372,7 +1394,7 @@
     await loadState();
     $$("#agent-seg button").forEach((b) => (b.onclick = () => setAgent(b.dataset.agent)));
     $("#btn-send").onclick = () => (S.running ? api("/api/chat/stop", { agent: S.agent }) : send());
-    $("#btn-mic").onclick = toggleMic;
+    $("#btn-mic").onclick = () => toggleMic();
     $("#input").addEventListener("input", autoGrow);
     keepChatBottom();
     $("#input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
