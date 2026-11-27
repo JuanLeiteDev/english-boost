@@ -188,13 +188,17 @@ main.work { flex: 1; min-width: 0; height: 100vh; height: 100dvh; overflow: hidd
 .banner { display: flex; align-items: center; gap: 10px; font: 500 12.5px var(--mono); color: var(--signal); border: 1px dashed color-mix(in srgb, var(--signal) 45%, transparent); border-radius: var(--r-m); padding: 9px 12px; margin-bottom: 26px; }
 .timer-box { display: flex; align-items: center; gap: 14px; }
 .ring { position: relative; width: 78px; height: 78px; flex: none; }
-.ring > svg { width: 78px; height: 78px; transform: rotate(-90deg); }
+/* The inner disc is drawn in the same SVG as the ring, so both always share one center.
+   The button is a transparent hit area on top. */
+.ring > svg { position: absolute; inset: 0; display: block; width: 78px; height: 78px; transform: rotate(-90deg); }
 .ring > svg circle { fill: none; stroke-width: 3; }
 .ring .bg { stroke: var(--line); }
 .ring .fg { stroke: var(--signal); transition: stroke-dashoffset 1s linear; }
-.ring button { position: absolute; inset: 11px; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--raised); color: var(--fg); display: grid; place-items: center; transition: transform var(--d1) var(--ease), border-color var(--d1); }
-.ring button:hover { border-color: var(--signal); color: var(--signal); }
-.ring button:active { transform: scale(.94); }
+.ring > svg .disc { fill: var(--raised); stroke: var(--line-strong); stroke-width: 1; transform-box: fill-box; transform-origin: center; transition: transform var(--d1) var(--ease), stroke var(--d1); }
+.ring button { position: absolute; inset: 0; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--fg); display: grid; place-items: center; }
+.ring:hover .disc { stroke: var(--signal); }
+.ring button:hover { color: var(--signal); }
+.ring:has(button:active) .disc { transform: scale(.94); }
 .timer-txt { text-align: right; }
 .timer { display: block; font: 500 26px/1 var(--mono); letter-spacing: -.02em; }
 .timer-txt small { font: 500 11.5px var(--mono); color: var(--subtle); }
@@ -405,6 +409,16 @@ li.wrong .choice.is-key { border-color: color-mix(in srgb, var(--good) 55%, tran
 .step { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 3px 0; font: 500 11.5px var(--mono); color: var(--subtle); }
 .step .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .step .i { color: var(--good); }
+.tprog { display: grid; gap: 8px; padding: 6px 0 4px; min-width: min(280px, 100%); }
+.tprog-top { display: flex; align-items: center; gap: 8px; font: 500 12px var(--mono); color: var(--muted); }
+.tprog-top .spinner { color: var(--signal); }
+.tprog-top .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); }
+.tprog-top .n { color: var(--subtle); flex: none; }
+.tprog-bar { position: relative; height: 4px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.tprog-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--signal); transition: width .9s var(--ease); overflow: hidden; }
+.tprog-bar > span::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 45%, transparent), transparent); animation: tprog-shine 1.4s linear infinite; }
+@keyframes tprog-shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .tprog-bar > span::after { animation: none; } }
 .typing { display: inline-flex; gap: 5px; padding: 8px 0; }
 .typing i { width: 5px; height: 5px; background: var(--signal); animation: blink 1.1s infinite var(--ease-io); }
 .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
@@ -529,6 +543,14 @@ html.theming, html.theming *, html.theming *::before, html.theming *::after { tr
 .opt .ot { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .opt .ot b { font-weight: 500; font-size: 15.5px; letter-spacing: -.01em; }
 .opt .ot small { color: var(--muted); font-size: 13px; line-height: 1.35; }
+.pb { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; }
+.pb-step { position: relative; display: flex; align-items: center; gap: 12px; padding: 9px 0; font-size: 15px; color: var(--muted); }
+.pb-step.new { animation: rise var(--d2) var(--ease) both; }
+.pb-step + .pb-step::before { content: ""; position: absolute; left: 11px; top: -9px; height: 18px; width: 1px; background: var(--line); }
+.pb-step.doing { color: var(--fg); font-weight: 500; }
+.pb-ic { width: 23px; height: 23px; flex: none; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--bg); color: var(--signal); position: relative; z-index: 1; }
+.pb-step.done .pb-ic { border-color: var(--good); color: var(--good); }
+.pb-ic .spinner { width: 12px; height: 12px; }
 .pw-note { width: 100%; min-height: 110px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: var(--r-m); padding: 12px 14px; line-height: 1.6; resize: vertical; }
 .pw-note:focus { border-color: var(--signal); outline: none; }
 .pw-nav { display: flex; align-items: center; gap: 10px; margin-top: 6px; padding-top: 16px; border-top: 1px solid var(--line); }

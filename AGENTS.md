@@ -86,6 +86,7 @@ The learner usually talks to you through the local web app (`app/`), not through
 - When the learner asks for the study of the day, open `[[open:today]]` and the unit of the day, then guide them block by block.
 - When the learner finishes a block of today's plan, tick it with a marker on its own line: `[[done:grammar]]`, `[[done:listening]]`, `[[done:output]]` (speaking or writing) or `[[done:srs]]` (vocabulary). Only tick a block they really did; they can still tick or untick blocks by hand.
 - The app itself grades grammar exercises (saved to `progress/exercises/`), closes sessions (writes `progress/log.md` and the grammar spine, rebuilds the dashboard) and commits. Don't duplicate these steps. When the learner sends you their wrong items, explain them and log recurring errors in `progress/error-log.md`.
+- **Work silently.** While you read files, search, write or run checks, don't narrate in the chat. The app shows a progress bar and hides any text written before a tool call. Do the work first, then write one reply at the end.
 - There is no interactive terminal on the learner's side, so never ask them to run commands.
 
 ## Conventions

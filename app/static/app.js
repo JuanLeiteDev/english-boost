@@ -305,14 +305,44 @@
     return el;
   }
 
+  /* Tool steps in plain words for the learner; the technical label stays in the tooltip. */
+  function stepLabel(t) {
+    const s = String(t || "");
+    if (/check_practice/.test(s)) return "Checking the exercises";
+    if (/^(Write|Edit) .*practice/.test(s)) return "Writing your practice set";
+    if (/^(Write|Edit) .*error-log/.test(s)) return "Updating your error log";
+    if (/^(Write|Edit) /.test(s)) return "Writing a file";
+    if (/^Read .*(exercise-links|catalog)/.test(s)) return "Choosing good links";
+    if (/^Read /.test(s)) return "Reading your plan and notes";
+    if (/^Web: /.test(s)) return "Reading a web page";
+    if (/^Search: /.test(s)) return "Looking through your files";
+    if (/^Skill: /.test(s)) return "Getting ready";
+    if (/^Command: .*dashboard/.test(s)) return "Updating the dashboard";
+    if (/^Command: /.test(s)) return "Checking something";
+    if (/^TodoWrite$/.test(s)) return "Planning the work";
+    return s.length < 60 && !/^[A-Z][a-zA-Z]+$/.test(s) ? s : "Working";
+  }
+
   function fillAssistant(el, m, live) {
     const tools = $(".tools", el);
     const list = m.tools || [];
-    tools.innerHTML = list.length
-      ? `<span class="step" title="${esc(list.join("\n"))}">${live ? '<span class="spinner"></span>' : ic("check", "sm")}<span class="t">${esc(list[list.length - 1])}</span>${list.length > 1 ? `<span>· ${list.length} steps</span>` : ""}</span>`
-      : "";
     const text = (m.text || "").replace(MARK, "").replace(/\n{3,}/g, "\n\n").trim();
-    $(".body", el).innerHTML = text ? md(text) : live ? `<div class="typing"><i></i><i></i><i></i></div>` : "";
+    const working = live && list.length > 0;  // the tutor is doing work: show progress, not its notes
+    if (working) {
+      const sec = Math.floor((Date.now() - (m.started || Date.now())) / 1000);
+      const writing = !!text;  // text after the last step is the final reply being written
+      const pct = writing ? 96 : Math.round(6 + 86 * (1 - Math.exp(-(list.length + sec / 15) / 10)));
+      tools.innerHTML = `<div class="tprog" title="${esc(list.join("\n"))}">
+          <div class="tprog-top"><span class="spinner"></span><span class="t">${esc(writing ? "Writing the reply" : stepLabel(list[list.length - 1]))}</span>
+            <span class="n">${list.length} step${list.length > 1 ? "s" : ""} · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}</span></div>
+          <div class="tprog-bar" role="progressbar" aria-label="Tutor is working"><span style="width:${pct}%"></span></div>
+        </div>`;
+    } else {
+      tools.innerHTML = list.length
+        ? `<span class="step" title="${esc(list.join("\n"))}">${ic("check", "sm")}<span class="t">${esc(stepLabel(list[list.length - 1]))}</span>${list.length > 1 ? `<span>· ${list.length} steps</span>` : ""}</span>`
+        : "";
+    }
+    $(".body", el).innerHTML = working ? "" : text ? md(text) : live ? `<div class="typing"><i></i><i></i><i></i></div>` : "";
     wireDocLinks($(".body", el), null);
     const pills = $(".pills", el);
     const acts = parseMarkers(m.text || "");
@@ -374,7 +404,9 @@
     b.innerHTML = ic(r ? "stop" : "up");
   }
 
-  async function send(text) {
+  /* hooks (optional, used by the Practice page): tool(label), text(), practice(id) → true to skip the
+     automatic open, error(msg), done(message). */
+  async function send(text, hooks = {}) {
     text = (text ?? $("#input").value).trim();
     if (!text || S.running) return;
     $("#input").value = ""; autoGrow();
@@ -383,7 +415,7 @@
     const box = $("#msgs");
     $(".welcome", box)?.remove();
     box.appendChild(msgEl({ role: "user", text }));
-    const m = { role: "assistant", text: "", tools: [], agent: S.agent };
+    const m = { role: "assistant", text: "", tools: [], agent: S.agent, started: Date.now() };
     const el = msgEl(m);
     fillAssistant(el, m, true);
     box.appendChild(el);
@@ -394,7 +426,8 @@
     const opened = new Set();
     let raf = 0, finished = false;
     const paint = () => { raf = 0; if (finished) return; fillAssistant(el, m, true); fw.pin(); };
-    const addErr = (msg) => { const e = document.createElement("div"); e.className = "err"; e.innerHTML = `${ic("alert", "sm")}<span></span>`; $("span", e).textContent = msg; $(".bubble", el).appendChild(e); fw.pin(); };
+    const tick = setInterval(() => { if (m.tools.length && !raf) raf = requestAnimationFrame(paint); }, 1000);  // progress clock
+    const addErr = (msg) => { const e = document.createElement("div"); e.className = "err"; e.innerHTML = `${ic("alert", "sm")}<span></span>`; $("span", e).textContent = msg; $(".bubble", el).appendChild(e); fw.pin(); hooks.error?.(msg); };
     try {
       const r = await post("/api/chat/send", { agent: S.agent, text });
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
@@ -413,10 +446,12 @@
           try { ev = JSON.parse(line); } catch { continue; }
           if (ev.t === "text") {
             m.text += ev.v;
+            if (m.tools.length && m.text.replace(MARK, "").trim()) hooks.text?.();
             parseMarkers(m.text).forEach((a) => { if (!opened.has(a)) { opened.add(a); if (a.startsWith("done:")) return markDone(a.slice(5));
-              if (a.startsWith("practice:")) savePracticeChoices(a.slice(9).trim());
+              if (a.startsWith("practice:")) { const id = a.slice(9).trim(); savePracticeChoices(id); if (hooks.practice?.(id)) return; }
               doOpen(a); } });
-          } else if (ev.t === "tool") m.tools.push(ev.v);
+          } else if (ev.t === "reset") m.text = ev.v;  // narration before a tool step is dropped (markers kept)
+          else if (ev.t === "tool") { m.tools.push(ev.v); hooks.tool?.(ev.v); }
           else if (ev.t === "error") addErr(ev.v);
           if (!raf) raf = requestAnimationFrame(paint);
         }
@@ -425,6 +460,7 @@
       addErr(String(e.message || e));
     } finally {
       finished = true;
+      clearInterval(tick);
       if (raf) cancelAnimationFrame(raf);
       setRunning(false);
       fillAssistant(el, m, false);
@@ -433,6 +469,7 @@
       $(".speak", el).onclick = () => speak(m.text);
       $(".copy", el).onclick = () => copyText(m.text);
       S.pendingPractice = null;  // a reply without a practice set must not attach these choices to a later one
+      hooks.done?.(m);
       if (location.hash === "#practice") renderPracticeList();
       loadState().then(() => { if (S.tab === "today") renderToday(); });
     }
@@ -647,7 +684,7 @@
         <div><span class="eyebrow">Week ${esc(wk.week || s.week || 1)}${wk.range ? " · " + esc(wk.range) : ""}</span><h1>Day <em>${dayNo || 1}</em></h1><p class="theme">${esc(wk.title)}</p></div>
         <div class="timer-box">
           <div class="timer-txt"><span class="timer" id="timer">${fmtMs(elapsed())}</span><small>goal ${targetMin()} min</small></div>
-          <div class="ring"><svg viewBox="0 0 78 78"><circle class="bg" cx="39" cy="39" r="34"/><circle class="fg" id="ring-fg" cx="39" cy="39" r="34" stroke-dasharray="${RING}" stroke-dashoffset="${RING}"/></svg>
+          <div class="ring"><svg viewBox="0 0 78 78"><circle class="bg" cx="39" cy="39" r="34"/><circle class="fg" id="ring-fg" cx="39" cy="39" r="34" stroke-dasharray="${RING}" stroke-dashoffset="${RING}"/><circle class="disc" cx="39" cy="39" r="27.5"/></svg>
             <button id="t-toggle" aria-label="Timer"></button></div>
         </div>
       </div>
@@ -910,7 +947,7 @@
 
   async function renderPractice() {
     if (!pSpine) { try { pSpine = await api("/api/spine"); } catch { pSpine = []; } }
-    renderWizard();
+    if (pBuild) renderBuild(); else renderWizard();
     renderPracticeList();
   }
 
@@ -1015,8 +1052,88 @@
     if (agent === "codex") toast("Claude is not available, so Codex will make it.", 3000);
     S.pendingPractice = ch;
     store.set("practice:last", ch);
-    pDraft = { step: "skills", c: { ...P_DEFAULT } }; pSave(); renderWizard();
-    send(text);
+    pDraft = { step: "skills", c: { ...P_DEFAULT } }; pSave();
+    startBuild(ch);
+    send(text, buildHooks());
+  }
+
+  /* ---------------- practice: live status while the tutor builds the set ----------------
+     One line per stage, added as the tutor works: a spinner on the current one, a check on the
+     ones before it. The wizard comes back only when the learner asks for a new set.          */
+  let pBuild = null;  // { ch, steps: [{label, state, prov}], started, status: running|ready|question|error|stopped, id, error }
+  function startBuild(ch) {
+    pBuild = { ch, steps: [{ label: "Sending your choices to the tutor", state: "doing" }], started: Date.now(), status: "running" };
+    renderBuild();
+  }
+  function buildStep(label, prov = false) {
+    const st = pBuild.steps, last = st[st.length - 1];
+    if (last && last.prov) st.pop();                 // "Finishing" was only the tutor's notes: more work came
+    const cur = st[st.length - 1];
+    if (cur && cur.label === label) return;          // same stage, still going
+    if (cur) cur.state = "done";
+    st.push({ label, state: "doing", prov });
+  }
+  function buildLabel(tool) {
+    const l = stepLabel(tool);
+    const has = (x) => pBuild.steps.some((s) => s.label === x);
+    if (l === "Writing your practice set" && has("Checking the exercises")) return "Fixing a problem in the exercises";
+    if (l === "Checking the exercises" && has("Fixing a problem in the exercises")) return "Checking the exercises again";
+    // too vague to show, or an app notice ("Stopped.", "New conversation…") rather than a stage
+    if (l === tool || l === "Writing a file" || l === "Working" || l === "Checking something") return null;
+    return l;
+  }
+  function buildHooks() {
+    const b = pBuild;
+    const live = () => b === pBuild && b.status === "running";  // the learner may have started over meanwhile
+    const paint = () => { if (b === pBuild && location.hash === "#practice") renderBuild(); };
+    return {
+      tool(t) { if (t === "Stopped.") b.stopped = true; if (!live()) return; const l = buildLabel(t); if (l) buildStep(l); paint(); },
+      text() { if (!live()) return; const last = b.steps[b.steps.length - 1]; if (!last.prov) { buildStep("Finishing", true); paint(); } },
+      practice(id) {
+        if (!live()) return false;
+        const here = location.hash === "#practice";
+        b.id = id; buildStep("Your practice set is ready"); b.steps[b.steps.length - 1].state = "done"; b.status = "ready"; paint();
+        if (here) setTimeout(() => { if (b === pBuild && location.hash === "#practice") { location.hash = "#study"; openUnit(id); } }, 1400);
+        return here;  // on another page: open it right away, as before
+      },
+      error(msg) { if (live()) { b.status = "error"; b.error = msg; paint(); } },
+      done() {
+        if (!live()) return;
+        b.status = b.stopped ? "stopped" : "question";
+        b.steps.forEach((s) => { if (s.state === "doing") s.state = "done"; });
+        paint();
+      },
+    };
+  }
+  function renderBuild() {
+    const box = $("#pw"), b = pBuild;
+    const clock = () => { const s = Math.floor((Date.now() - b.started) / 1000); return `Working · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+    const shown = b.shown || 0; b.shown = b.steps.length;  // only new lines slide in
+    const head = { running: "Making your practice set", ready: "Your practice set is ready",
+      question: "The tutor wrote to you", error: "Something went wrong", stopped: "Stopped" }[b.status];
+    const sub = { running: "This takes a few minutes. You can wait here or do something else.",
+      ready: "Opening it now…", question: "The tutor needs something from you. Read the chat and answer there.",
+      error: b.error || "The tutor could not finish.", stopped: "The tutor stopped before the set was ready." }[b.status];
+    box.innerHTML = `
+      <div class="pw-top"><span class="eyebrow" id="pb-clock">${b.status === "running" ? clock() : "Practice set"}</span></div>
+      <h2>${esc(head)}</h2><p class="muted pw-hint">${esc(sub)}</p>
+      <ol class="pb">${b.steps.map((s, i) => `<li class="pb-step ${s.state}${i >= shown ? " new" : ""}"><span class="pb-ic">${s.state === "doing" && b.status === "running" ? '<span class="spinner"></span>' : ic(b.status === "error" && s.state === "doing" ? "alert" : "check", "sm")}</span><span>${esc(s.label)}</span></li>`).join("")}</ol>
+      <div class="pw-nav"><span class="grow"></span>
+        ${b.status === "ready" ? `<button class="btn" id="pb-open"><span>Open my practice</span>${ic("arrow", "sm arrow")}</button>` : ""}
+        ${b.status === "question" ? `<button class="btn sm" id="pb-chat">Go to the chat</button>` : ""}
+        ${b.status === "error" || b.status === "stopped" ? `<button class="btn sm" id="pb-retry">Try again</button>` : ""}
+        ${b.status !== "running" ? `<button class="btn quiet sm" id="pb-new">Make a new set</button>` : ""}
+      </div>`;
+    if ($("#pb-open")) $("#pb-open").onclick = () => { location.hash = "#study"; openUnit(b.id); };
+    if ($("#pb-chat")) $("#pb-chat").onclick = () => { document.body.classList.add("chat-open"); if (document.body.classList.contains("chat-closed")) setLayout("chat-closed", false); $("#input").focus(); };
+    if ($("#pb-retry")) $("#pb-retry").onclick = () => { pBuild = null; practiceAgain(b.ch); };
+    if ($("#pb-new")) $("#pb-new").onclick = () => { pBuild = null; renderWizard(); };
+    clearInterval(renderBuild.t);
+    if (b.status === "running") renderBuild.t = setInterval(() => {
+      const c = $("#pb-clock");
+      if (b !== pBuild || b.status !== "running" || !c) return clearInterval(renderBuild.t);
+      c.textContent = clock();
+    }, 1000);
   }
   function savePracticeChoices(id) {
     if (!S.pendingPractice) return;
@@ -1025,7 +1142,9 @@
     api("/api/practice/choices", { id, choices }).then(() => { if (location.hash === "#practice") renderPracticeList(); }).catch(() => {});
   }
   function practiceAgain(ch) {
-    pDraft = { step: "summary", c: { ...P_DEFAULT, ...ch } }; pSave();
+    if (pBuild && pBuild.status === "running") return toast("The tutor is still making your last set. Wait a moment.", 2800, "bad");
+    pBuild = null;
+    pDraft ={ step: "summary", c: { ...P_DEFAULT, ...ch } }; pSave();
     renderWizard();
     $("#pw").scrollIntoView({ behavior: "smooth", block: "start" });
   }

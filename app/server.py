@@ -95,6 +95,7 @@ APP_CONTEXT = """Context: you are talking to Juan in the local web app "English 
 LANGUAGE RULE (most important): write ONLY in English. Never write Portuguese, even if Juan writes in Portuguese.
 Use simple English at Juan's level (see Language-Tutor/learner-data/english/profile.json; now about A2): short sentences, common words, one idea per sentence. Explain a new word with an easy example, not a translation. Use richer English only when his level goes up.
 STYLE: be brief and practical. Usually under 120 words: one short explanation, one example, then a task or a question for Juan. Practice first, theory second.
+WORK SILENTLY: while you read files, search the web, write files or run checks, do not narrate ("I fetched...", "Now I will...", page summaries). The app shows Juan a progress bar and hides any text written before a tool call. Do all the work first, then write ONE reply to Juan at the end.
 Follow AGENTS.md and use the project skills.
 The app has a main workspace. To open material there, write a marker on its own line: [[open:today]] (today's plan), [[open:P1-02]] (interactive grammar unit), [[open:doc:path/file.md]] (a project document) or [[open:url:https://...]] (external link).
 When Juan asks for today's study, open [[open:today]] and the grammar unit of the day, then guide him block by block.
@@ -111,6 +112,7 @@ CLAUDE_TOOLS = ",".join([
     "Bash(python3 scripts/check_practice.py*)", "Bash(python scripts/check_practice.py*)",
     "Bash(git status*)", "Bash(git log*)", "Bash(git diff*)",
 ])
+MARKER = re.compile(r"\[\[(?:abrir|open|done):[^\]]+\]\]")  # same as MARK in static/app.js
 
 
 class BadRequest(Exception):
@@ -934,6 +936,14 @@ def _attempt(agent: str, cmd: list[str], stdin_text: str, conv: dict, reply: dic
     def add_tool(v: str):
         res["output"] = True
         reply["tools"].append(v)
+        # Text written before a tool step is narration ("I fetched...", "Now I will..."): the learner
+        # sees a progress bar instead. Keep only its markers, so [[open:...]] / [[done:...]] still work.
+        if reply["text"]:
+            narration = MARKER.sub("", reply["text"]).strip()
+            if narration:
+                res["dropped"] = narration
+            reply["text"] = "".join(m.group(0) + "\n" for m in MARKER.finditer(reply["text"]))
+            emit({"t": "reset", "v": reply["text"]})
         emit({"t": "tool", "v": v})
 
     streamed = False  # Claude: did this message arrive as deltas? (fallback for CLIs without partials)
@@ -947,6 +957,8 @@ def _attempt(agent: str, cmd: list[str], stdin_text: str, conv: dict, reply: dic
                 continue
             et = e.get("type")
             if agent == "claude":
+                if e.get("parent_tool_use_id") and et in ("stream_event", "assistant"):
+                    continue  # a sub-agent's own messages: never shown in the chat
                 if et == "system" and e.get("session_id"):
                     conv["session"] = e["session_id"]
                 elif et == "stream_event":
@@ -971,7 +983,7 @@ def _attempt(agent: str, cmd: list[str], stdin_text: str, conv: dict, reply: dic
                         conv["session"] = e["session_id"]
                     if e.get("is_error"):
                         errors.append(short(e.get("result") or "Claude error", 400))
-                    elif not reply["text"] and e.get("result"):
+                    elif not MARKER.sub("", reply["text"]).strip() and e.get("result"):
                         add_text(str(e["result"]))
             else:
                 if et == "thread.started":
@@ -994,6 +1006,10 @@ def _attempt(agent: str, cmd: list[str], stdin_text: str, conv: dict, reply: dic
                     msg = e.get("message") or (e.get("error") or {}).get("message") or json.dumps(e)[:300]
                     errors.append(short(msg, 400))
         proc.wait()
+        if res.get("dropped") and not MARKER.sub("", reply["text"]).strip():
+            # The agent never wrote a final reply after its last step: show its last words after all.
+            reply["text"] = (reply["text"] + "\n" + res["dropped"]).strip()
+            emit({"t": "reset", "v": reply["text"]})
     finally:
         watchdog.cancel()
         if proc.poll() is None:
