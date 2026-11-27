@@ -256,6 +256,28 @@ main.work { flex: 1; min-width: 0; height: 100vh; height: 100dvh; overflow: hidd
 .ex-input:focus-visible { outline: none; }
 li.right .ex-input { border-color: color-mix(in srgb, var(--good) 55%, transparent); background: var(--good-soft); }
 li.wrong .ex-input { border-color: color-mix(in srgb, var(--bad) 55%, transparent); background: var(--bad-soft); }
+.choices { display: grid; gap: 6px; margin-top: 10px; }
+.choice {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 42px; padding: 8px 13px; text-align: left;
+  border: 1px solid var(--line); background: var(--raised); border-radius: var(--r-m); font-size: 16px; line-height: 1.4;
+  transition: border-color var(--d1), background var(--d2);
+}
+.choice:hover { border-color: var(--line-strong); }
+.choice:focus-visible { border-radius: var(--r-m); }
+.choice .tick {
+  flex: none; display: grid; place-items: center; width: 18px; height: 18px; border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-s); transition: background var(--d1), border-color var(--d1);
+}
+.choice[aria-checked="true"] { border-color: var(--signal); background: var(--signal-soft); }
+.choice[aria-checked="true"] .tick { background: var(--signal); border-color: var(--signal); }
+.choice[aria-checked="true"] .tick::after {
+  content: ""; width: 9px; height: 5px; border: 2px solid var(--signal-ink); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg);
+}
+li.right .choice[aria-checked="true"] { border-color: color-mix(in srgb, var(--good) 55%, transparent); background: var(--good-soft); }
+li.right .choice[aria-checked="true"] .tick { background: var(--good); border-color: var(--good); }
+li.wrong .choice[aria-checked="true"] { border-color: color-mix(in srgb, var(--bad) 55%, transparent); background: var(--bad-soft); }
+li.wrong .choice[aria-checked="true"] .tick { background: var(--bad); border-color: var(--bad); }
+li.wrong .choice.is-key { border-color: color-mix(in srgb, var(--good) 55%, transparent); border-style: dashed; }
 .mark { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; font-size: 14px; animation: rise var(--d2) var(--ease) both; }
 .mark .exp { color: var(--fg); }
 .mark .exp::before { content: "Answer: "; font: 500 11.5px var(--mono); color: var(--subtle); }

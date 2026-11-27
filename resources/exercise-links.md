@@ -6,6 +6,69 @@ To add a link: open it, check that the questions or the audio are on that page, 
 
 Checked on **2026-11-26** (HTTP 200 + exercise inputs or audio on the page).
 
+## Explanations · learn it here first (checked 2026-11-27)
+
+Pages with a **full explanation of one point** (rules, many examples, often a video or PDF). The "Learn it" section of a practice set or unit is built on one of these: link it, then explain the point in simple English **from that page**, not from memory. `check_practice.py` reads this section to find explanation links.
+
+| Topic (spine) | Direct link | Source |
+|---|---|---|
+| Verb *be* (P1-01) | https://dictionary.cambridge.org/grammar/british-grammar/be | Cambridge Dictionary |
+| Possessive adjectives (P1-01) | https://www.perfect-english-grammar.com/possessive-adjectives.html | Perfect English Grammar |
+| *its* or *it's* (P1-01) | https://dictionary.cambridge.org/grammar/british-grammar/its-or-it-s | Cambridge Dictionary |
+| Present simple: form (P1-02) | https://www.perfect-english-grammar.com/present-simple.html | Perfect English Grammar |
+| Present simple: spelling -s/-es/-ies (P1-02) | https://www.perfect-english-grammar.com/present-simple-spelling.html | Perfect English Grammar |
+| Present simple: use (P1-02) | https://www.perfect-english-grammar.com/present-simple-use.html | Perfect English Grammar |
+| Present simple (full reference) | https://dictionary.cambridge.org/grammar/british-grammar/present-simple-i-work | Cambridge Dictionary |
+| Negative sentences (P1-03) | https://www.perfect-english-grammar.com/negative-sentences-in-english-grammar.html | Perfect English Grammar |
+| Question forms (P1-03, P1-05) | https://www.perfect-english-grammar.com/questions.html | Perfect English Grammar |
+| Adverbs of frequency (P1-04) | https://www.perfect-english-grammar.com/adverbs-of-frequency.html | Perfect English Grammar |
+| Subject questions (P1-05) | https://www.perfect-english-grammar.com/subject-questions.html | Perfect English Grammar |
+| Present continuous: form (P1-06) | https://www.perfect-english-grammar.com/present-continuous.html | Perfect English Grammar |
+| Present continuous: use (P1-06) | https://www.perfect-english-grammar.com/present-continuous-use.html | Perfect English Grammar |
+| Present simple or continuous? (P1-07) | https://www.perfect-english-grammar.com/present-simple-or-present-continuous.html | Perfect English Grammar |
+| Stative verbs (P1-07) | https://www.perfect-english-grammar.com/stative-verbs.html | Perfect English Grammar |
+| There is / there are (P1-08) | https://dictionary.cambridge.org/grammar/british-grammar/there-is-there-are | Cambridge Dictionary |
+| Some and any (P1-09) | https://www.perfect-english-grammar.com/some-and-any.html | Perfect English Grammar |
+| A little / a few (P1-09) | https://www.perfect-english-grammar.com/a-little-a-few.html | Perfect English Grammar |
+| Articles a/an/the (P1-10) | https://dictionary.cambridge.org/grammar/british-grammar/a-an-and-the | Cambridge Dictionary |
+| Prepositions of time (P1-12) | https://www.perfect-english-grammar.com/prepositions-of-time.html | Perfect English Grammar |
+| Prepositions of place (P1-12) | https://www.perfect-english-grammar.com/prepositions-of-place.html | Perfect English Grammar |
+| Past simple: form (P1-13 to P1-15) | https://www.perfect-english-grammar.com/past-simple.html | Perfect English Grammar |
+| Past simple: use | https://www.perfect-english-grammar.com/past-simple-use.html | Perfect English Grammar |
+| How to say -ed (P1-14) | https://www.perfect-english-grammar.com/how-to-pronounce-ed.html | Perfect English Grammar |
+| Irregular verbs (P1-15) | https://www.perfect-english-grammar.com/irregular-verbs.html | Perfect English Grammar |
+| Past continuous: use (P1-16) | https://www.perfect-english-grammar.com/past-continuous-use.html | Perfect English Grammar |
+| Will or going to? (P1-17, P1-18) | https://www.perfect-english-grammar.com/will-or-be-going-to.html | Perfect English Grammar |
+| Future simple: use (P1-18) | https://www.perfect-english-grammar.com/simple-future-use.html | Perfect English Grammar |
+| Comparatives (P1-19) | https://www.perfect-english-grammar.com/comparatives.html | Perfect English Grammar |
+| Superlatives (P1-19) | https://www.perfect-english-grammar.com/superlatives.html | Perfect English Grammar |
+| Modals of ability (P1-20) | https://www.perfect-english-grammar.com/modal-verbs-of-ability.html | Perfect English Grammar |
+| Modals of obligation (P1-21) | https://www.perfect-english-grammar.com/modal-verbs-of-obligation.html | Perfect English Grammar |
+| Present perfect: use (P1-22, P1-23) | https://www.perfect-english-grammar.com/present-perfect-use.html | Perfect English Grammar |
+| Present perfect or past simple? (P1-22) | https://www.perfect-english-grammar.com/present-perfect-or-past-simple.html | Perfect English Grammar |
+| Gerunds and infinitives (P1-24) | https://www.perfect-english-grammar.com/gerunds-and-infinitives.html | Perfect English Grammar |
+| Zero conditional (P1-25) | https://www.perfect-english-grammar.com/zero-conditional.html | Perfect English Grammar |
+| First conditional (P1-25) | https://www.perfect-english-grammar.com/first-conditional.html | Perfect English Grammar |
+| Relative clauses (P1-26) | https://www.perfect-english-grammar.com/relative-clauses.html | Perfect English Grammar |
+| Indirect questions (P1-28) | https://www.perfect-english-grammar.com/indirect-questions.html | Perfect English Grammar |
+| Tag questions (P1-28) | https://www.perfect-english-grammar.com/tag-questions.html | Perfect English Grammar |
+| Past perfect: use (P2-02) | https://www.perfect-english-grammar.com/past-perfect-use.html | Perfect English Grammar |
+| Used to / would / be used to (P2-03) | https://www.perfect-english-grammar.com/used-to.html | Perfect English Grammar |
+| The passive (P2-04, P2-05) | https://www.perfect-english-grammar.com/passive.html | Perfect English Grammar |
+| Second conditional (P2-06) | https://www.perfect-english-grammar.com/second-conditional.html | Perfect English Grammar |
+| Third conditional (P2-07) | https://www.perfect-english-grammar.com/third-conditional.html | Perfect English Grammar |
+| Modals of probability (P2-08) | https://www.perfect-english-grammar.com/modal-verbs-of-probability.html | Perfect English Grammar |
+| Past modals (P2-09) | https://www.perfect-english-grammar.com/past-modals.html | Perfect English Grammar |
+| Reported speech (P2-10, P2-11) | https://www.perfect-english-grammar.com/reported-speech.html | Perfect English Grammar |
+| Say and tell (P2-10) | https://www.perfect-english-grammar.com/say-and-tell.html | Perfect English Grammar |
+| Phrasal verbs list 1 (P2-17) | https://www.perfect-english-grammar.com/phrasal-verbs-1.html | Perfect English Grammar (PHaVE list) |
+| Phrasal verbs list 2 (P2-17) | https://www.perfect-english-grammar.com/phrasal-verbs-2.html | Perfect English Grammar (PHaVE list) |
+| Phrasal verbs (what they are) | https://dictionary.cambridge.org/grammar/british-grammar/phrasal-verbs | Cambridge Dictionary |
+| Make or do | https://www.perfect-english-grammar.com/make-or-do.html | Perfect English Grammar |
+| Collocations (word partners) | https://dictionary.cambridge.org/grammar/british-grammar/collocation | Cambridge Dictionary |
+| Verb + preposition | https://www.perfect-english-grammar.com/verbs-and-prepositions.html | Perfect English Grammar |
+| Adjective + preposition | https://www.perfect-english-grammar.com/adjectives-and-prepositions.html | Perfect English Grammar |
+
 ## Grammar · Perfect English Grammar (interactive: type the answers, then "Check")
 
 | Topic (spine) | Direct link | What Juan does there |

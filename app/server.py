@@ -156,12 +156,28 @@ def cached(key: str, ttl: float, fn):
     return val
 
 
+EFFORTS = ("auto", "low", "medium", "high")  # levels both CLIs accept (claude --effort, codex model_reasoning_effort)
+# "auto": high for work where quality matters most (building practice sets, grading writing/speaking,
+# diagnostics and checkpoints), medium for everything else (chat, explanations, daily guidance).
+HEAVY_TASK = re.compile(r"practice-builder|create a practice set|english-examiner|diagnostic|checkpoint|"
+                        r"please check (it|my)|grade (my|this)", re.I)
+
+
 def settings() -> dict:
-    s = {"codex_model": "gpt-6-sol", "claude_model": "", "claude_bin": "", "codex_bin": ""}
+    s = {"codex_model": "gpt-6-sol", "claude_model": "", "claude_bin": "", "codex_bin": "", "effort": "auto"}
     data = jload(STATE / "settings.json", {})
     if isinstance(data, dict):
         s.update({k: str(v) for k, v in data.items() if k in s})
+    if s["effort"] not in EFFORTS:
+        s["effort"] = "auto"
     return s
+
+
+def effort_for(text: str, setting: str) -> str:
+    """The effort level for one turn: the chosen level, or (auto) high for heavy tasks and medium otherwise."""
+    if setting in EFFORTS and setting != "auto":
+        return setting
+    return "high" if HEAVY_TASK.search(text or "") else "medium"
 
 
 def to_int(v, name: str, lo: int, hi: int, default=None) -> int | None:
@@ -835,10 +851,11 @@ def kill_tree(proc: subprocess.Popen) -> None:
             pass
 
 
-def build_cmd(agent: str, conv: dict) -> tuple[list[str] | None, str, str]:
+def build_cmd(agent: str, conv: dict, text: str = "") -> tuple[list[str] | None, str, str]:
     """Return (command, stdin_prefix, error). The user's text goes through stdin, never argv:
-    no option injection, no Windows 32K command-line limit."""
+    no option injection, no Windows 32K command-line limit. `text` only picks the effort level."""
     s = settings()
+    effort = effort_for(text, s["effort"])
     if agent == "claude":
         binp = find_claude()
         if not binp:
@@ -848,6 +865,7 @@ def build_cmd(agent: str, conv: dict) -> tuple[list[str] | None, str, str]:
                                 "--append-system-prompt", APP_CONTEXT]
         if s.get("claude_model"):
             cmd += ["--model", s["claude_model"]]
+        cmd += ["--effort", effort]
         if conv.get("session"):
             cmd += ["--resume", conv["session"]]
         return cmd, "", ""
@@ -860,9 +878,11 @@ def build_cmd(agent: str, conv: dict) -> tuple[list[str] | None, str, str]:
     sandbox = os.environ.get("CODEX_SANDBOX", "workspace-write")
     if conv.get("session"):
         cmd = launcher(binp) + ["exec", "resume", conv["session"], "--json", "-m", model,
-                                "-c", f'sandbox_mode="{sandbox}"', "--skip-git-repo-check", "-"]
+                                "-c", f'sandbox_mode="{sandbox}"', "-c", f'model_reasoning_effort="{effort}"',
+                                "--skip-git-repo-check", "-"]
         return cmd, "", ""
-    cmd = launcher(binp) + ["exec", "--json", "-m", model, "-s", sandbox, "--skip-git-repo-check", "-"]
+    cmd = launcher(binp) + ["exec", "--json", "-m", model, "-s", sandbox, "-c", f'model_reasoning_effort="{effort}"',
+                            "--skip-git-repo-check", "-"]
     return cmd, APP_CONTEXT + "\n\n---\n\n", ""
 
 
@@ -1001,7 +1021,7 @@ def run_agent(agent: str, text: str, emit) -> None:
         emit({"t": "tool", "v": notice})
     try:
         for attempt in range(2):
-            cmd, prefix, err = build_cmd(agent, conv)
+            cmd, prefix, err = build_cmd(agent, conv, text)
             if not cmd:
                 emit({"t": "error", "v": err})
                 return
@@ -1325,9 +1345,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(close_session(d))
         if p == "/api/settings":
             s = settings()
-            for k in ("codex_model", "claude_model", "claude_bin", "codex_bin"):
+            for k in ("codex_model", "claude_model", "claude_bin", "codex_bin", "effort"):
                 if k in d:
                     s[k] = str(d[k]).strip().strip('"')[:400]
+            if s["effort"] not in EFFORTS:
+                raise BadRequest("invalid effort")
             jsave(STATE / "settings.json", s)
             _CACHE.clear()  # paths/models may have changed
             return self._json(s)

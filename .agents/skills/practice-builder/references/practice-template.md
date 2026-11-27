@@ -7,15 +7,31 @@ Read `example-set.md` first: it shows the expected quality. Everything in **simp
 
 *<skills> · <level> · about <honest time> min · <N> scored items + speaking*
 
-## 1. Quick look
-<Only for the grammar/vocabulary chosen. One small table or 3 bullets + 2 examples with the form in **bold**. Add the trap: ✗ typical error → ✓ correct.>
+## 1. Learn it
+**Read first (5–10 min):** [<Source · page title>](<page from "## Explanations" in resources/exercise-links.md>). The notes below come from this page.
+
+### <Point 1, e.g. Short answers with *be*>
+<What it means and when we use it: 2–3 short sentences, from the linked page.>
+
+| Form | Example |
+|---|---|
+| … | *full sentence from Juan's life* |
+
+<3+ full examples. The typical mistake: ✗ … → ✓ … and why, in one line.>
+
+### <Point 2, or the words: one table row each>
+| Phrasal verb | Meaning | Example |
+|---|---|---|
+| **move in** | start to live in a new home | *We move in on Saturday.* |
+
+<Max 2–3 grammar points or 6–8 words. Never "a · b · c · d · e" on one line: every point gets its meaning and an example.>
 
 ## 2. Practice · <Grammar or Vocabulary>
 ### A · <task type 1, e.g. Read the meaning, write the phrasal verb>
 1. I want to ___ for the football team. Where is the list? (= put my name on it)
 
-### B · <task type 2, e.g. Choose the right form: the time words decide>
-2. Last year I ___ in Lisbon. Now I live in Kortrijk with two flatmates. (live)
+### B · <task type 2, e.g. Choose the right answer>
+2. "Are you a new student here?" "Yes, ___." a) I'm b) I am c) I'm am d) I be
 
 ### C · <task type 3, e.g. Find the mistake and write the correct sentence>
 3. Yesterday I didn't went to class.
@@ -27,7 +43,7 @@ voices: Anna=f, Tom=m
 Anna: …   (120+ words, natural, with a changed plan / numbers / a correction)
 Tom: …
 ```
-4. When is the meeting now? a) … b) … c) …
+4. When is the meeting now? a) … b) … c) … d) …
 5. Why did Tom change the time?
 
 ### E · Real audio: <ESL Lab lesson title>
@@ -47,8 +63,8 @@ Open [ESL Lab · <title>](<direct lesson link from resources/exercise-links.md>)
 ## Item rules (the checker tests them)
 
 - **One `___` per item.** Juan may type the missing words or the full sentence; both are graded.
-- Brackets hold a meaning `(= …)`, a base verb when the task is the form, or 3+ options `(make / do / take)`. **Never the answer.**
-- Multiple choice with long options: `a) … b) … c) …` at the end of the item; key `b) full option text` (Juan can type `b` or the text).
+- Brackets hold a meaning `(= …)` or a base verb when the task is the form. **Never the answer, never options.**
+- Multiple choice: **exactly 4 options** `a) … b) … c) … d) …` at the end of the item (or each on its own indented line). The app shows one tick box per option, one under the other. Key: `b) full option text`.
 - Find the mistake: one mistake per sentence. Key: the corrected sentence with the fix in **bold**, then ` / ` the corrected word(s).
 - Number items **1..N across the whole file**. Max 10 items per `###` section; at least 3 task types.
 - "Your turn" headings are not graded (the app shows a text box with "Send to the tutor"). They must be `###` inside a `## … Practice …` section.
@@ -59,7 +75,7 @@ Open [ESL Lab · <title>](<direct lesson link from resources/exercise-links.md>)
 # Answer key · <ID>
 
 1. sign up
-2. b) Saturday at eight / Saturday at 8
+2. b) I am
 3. Yesterday I didn't **go** to class. / go / didn't go
 
 **Score:** N items · 90%+ mastered · 70–89% done · under 70% repeat

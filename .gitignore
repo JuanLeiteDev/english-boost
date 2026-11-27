@@ -24,3 +24,6 @@ recordings/
 
 # Web app local state (chat history, settings)
 app/state/
+
+# Locally synced skills
+.agents/skills/synced/

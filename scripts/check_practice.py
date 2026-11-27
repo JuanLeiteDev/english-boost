@@ -86,9 +86,51 @@ def has_options(item: str) -> bool:
     return bool(re.search(r"\([^)]*\s/\s[^)]*\)", item) or re.search(r"\ba\)\s.+\bb\)\s", item))
 
 
+def bracket_options(item: str) -> bool:
+    """Old-style choice in brackets '(make / do / take)'. A meaning '(= … / …)' is not a choice."""
+    return any(not c.strip().startswith("=") for c in re.findall(r"\(([^)]*\s/\s[^)]*)\)", item))
+
+
+def letter_options(item: str) -> list[str]:
+    """Letters of a trailing 'a) … b) … c) … d) …' list (the app shows them as tick boxes)."""
+    marks = re.findall(r"(?:^|\s)\(?([a-f])\)\s+\S", item)
+    if "a" not in marks:
+        return []
+    run = ["a"]
+    for m in marks[marks.index("a") + 1:]:
+        if m != chr(ord(run[-1]) + 1):
+            break
+        run.append(m)
+    return run if len(run) > 1 else []
+
+
+def _urls(text: str) -> set[str]:
+    return {u.rstrip(").,|").rstrip("/") for u in re.findall(r"https?://[^\s|)]+", text)}
+
+
 def allowed_links() -> set[str]:
     text = LINKS.read_text(encoding="utf-8") if LINKS.is_file() else ""
     return {u.rstrip(").,|") for u in re.findall(r"https?://[^\s|)]+", text)}
+
+
+def explanation_links() -> set[str]:
+    """Links in the '## Explanations' section of resources/exercise-links.md."""
+    text = LINKS.read_text(encoding="utf-8") if LINKS.is_file() else ""
+    m = re.search(r"^## Explanations.*?(?=^## |\Z)", text, re.M | re.S)
+    return _urls(m.group(0)) if m else set()
+
+
+def learn_section(text: str) -> str:
+    """Everything between the first '## ' heading and the first '## … Practice …' heading."""
+    out, started = [], False
+    for line in text.splitlines():
+        if line.startswith("## "):
+            if re.search(r"practi|exerc", line, re.I):
+                break
+            started = True
+        elif started:
+            out.append(line)
+    return "\n".join(out)
 
 
 def check(pid: str, minutes: int | None, skills: set[str], online: bool) -> tuple[list[str], list[str]]:
@@ -124,6 +166,16 @@ def check(pid: str, minutes: int | None, skills: set[str], online: bool) -> tupl
         if it.count("___") > 1:
             warnings.append(f"item {n}: more than one ___ gap (the app grades one answer per item)")
 
+    # 2b. multiple choice = tick boxes in the app: exactly four options a) b) c) d), key "b) option"
+    for n, it in items.items():
+        letters = letter_options(it)
+        if bracket_options(it):
+            errors.append(f"item {n}: options in brackets. Write them at the end as a) … b) … c) … d) … so the app shows tick boxes")
+        elif letters and len(letters) != 4:
+            errors.append(f"item {n}: {len(letters)} options. Multiple choice needs exactly 4: a) … b) … c) … d) …")
+        if letters and n in key and not re.match(r"^\(?[a-f]\)\s", key[n].replace("*", "").strip()):
+            errors.append(f"item {n}: the key of a multiple-choice item must start with the letter, e.g. 'b) {key[n]}'")
+
     # 3. size and variety
     scored = len(items)
     if minutes:
@@ -138,6 +190,21 @@ def check(pid: str, minutes: int | None, skills: set[str], online: bool) -> tupl
     for title, nums in sections:
         if len(nums) > 10:
             warnings.append(f"section '{title}' has {len(nums)} items: split it or vary the task")
+
+    # 3b. "Learn it": built on a real explanation page, and each point really explained (no "a · b · c · d" lists)
+    learn = learn_section(text)
+    if skills & {"grammar", "vocabulary"}:
+        if not _urls(learn) & explanation_links():
+            errors.append("no explanation link in the first section: link a page from '## Explanations' in "
+                          "resources/exercise-links.md and explain the point from that page")
+        words = len(re.findall(r"[A-Za-z']+", re.sub(r"\(https?://[^)]+\)", "", learn)))
+        if words < 150:
+            errors.append(f"the 'Learn it' section has only {words} words: explain each point properly "
+                          "(meaning, when we use it, the form, 3+ examples, the typical mistake)")
+    for line in learn.splitlines():
+        if line.count(" · ") >= 4 and not re.match(r"^\s*\*[^*]", line):
+            errors.append(f"a list of {line.count(' · ') + 1} points on one line in 'Learn it': give each one its own row "
+                          f"with the meaning and an example: '{line.strip()[:60]}…'")
 
     # 4. listening
     words = [len(re.findall(r"[A-Za-z']+", re.sub(r"(?im)^\s*voices\s*:.*$", "", s))) for s in scripts]

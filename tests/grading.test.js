@@ -116,5 +116,16 @@ for (const [a, want] of [["b", true], ["B)", true], ["(b)", true], ["went", true
 assert.strictEqual(G.isRight("I went home yesterday.", "b) went", "Yesterday I ___ home. a) go b) went c) goes"), false);
 assert.strictEqual(G.isRight("Yesterday I went home.", "b) went", "Yesterday I ___ home."), true);
 assert.strictEqual(G.clean("**It**'s ok ← note"), "It's ok");
+// multiple choice items become tick boxes: stem + options (one line, own lines, "(a)" style); plain items stay text inputs
+const c1 = G.choices("\"Are you new?\" \"Yes, ___.\" a) I'm b) I am c) I'm am d) I be");
+assert.deepStrictEqual(c1 && [c1.stem, c1.opts.map((o) => o.letter + "=" + o.html)], ["\"Are you new?\" \"Yes, ___.\"", ["a=I'm", "b=I am", "c=I'm am", "d=I be"]]);
+const c2 = G.choices("When is it?<br>(a) <em>Friday</em><br>(b) Saturday<br>(c) Sunday<br>(d) Monday");
+assert.deepStrictEqual(c2 && [c2.stem, c2.opts.map((o) => o.html)], ["When is it?", ["<em>Friday</em>", "Saturday", "Sunday", "Monday"]]);
+assert.strictEqual(G.choices("I ___ (cook) every evening in the area)."), null);
+assert.strictEqual(G.choices("Pick one: a) only one option"), null);
+// the app stores the chosen option text: it is graded against "b) text" keys and plain keys
+assert.strictEqual(G.isRight("I am", "b) I am", c1.stem), true);
+assert.strictEqual(G.isRight("I'm", "b) I am", c1.stem), false);
+assert.strictEqual(G.isRight("make", "make", "I ___ friends. a) do b) make c) take d) have"), true);
 if (fail) { console.error(`${fail} grading problems`); process.exit(1); }
 console.log(`grading ok: ${cases.length + full.length} cases, ${items} keyed items`);

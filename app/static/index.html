@@ -166,6 +166,8 @@
       <label>Codex model <select name="codex_model" id="set-codex"></select></label>
       <label>Claude model
         <select name="claude_model"><option value="">Default</option><option value="opus">Opus</option><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option></select></label>
+      <label class="full">Effort (Claude and Codex)
+        <select name="effort"><option value="auto">Auto (recommended): high for practice sets and grading, medium for the rest</option><option value="low">Low: fastest, simple answers</option><option value="medium">Medium: balanced</option><option value="high">High: best quality, slower</option></select></label>
       <label class="full">Claude path <input name="claude_bin" id="set-cbin" placeholder="automatic"></label>
       <label class="full">Codex path <input name="codex_bin" id="set-xbin" placeholder="automatic"></label>
     </div>

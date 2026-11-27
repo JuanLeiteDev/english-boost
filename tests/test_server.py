@@ -160,6 +160,33 @@ class TestWrites(ServerTestCase):
         self.assertNotIn("evil", s)
         self.assertEqual(self.srv.get_json("/api/state")["settings"]["claude_model"], "sonnet")
         self.srv.post("/api/settings", {"codex_model": "gpt-6-sol", "claude_model": ""})
+        self.assertEqual(s["effort"], "auto")
+        st, _ = self.srv.post("/api/settings", {"effort": "turbo; rm -rf"})
+        self.assertEqual(st, 400)
+
+    def test_effort_is_passed_to_both_agents(self):
+        """Auto: high for practice sets and grading, medium for chat. A fixed level wins over auto."""
+        try:
+            for agent in ("claude", "codex"):
+                self.reset(agent)
+                self.srv.chat(agent, "Please create a practice set for me (practice-builder skill).")
+                hi = self.srv.calls()[-1]["argv"]
+                self.srv.chat(agent, "What is the present simple?")
+                med = self.srv.calls()[-1]["argv"]  # second turn: a resumed session also gets the effort
+                if agent == "claude":
+                    self.assertEqual(hi[hi.index("--effort") + 1], "high")
+                    self.assertEqual(med[med.index("--effort") + 1], "medium")
+                else:
+                    self.assertIn('model_reasoning_effort="high"', hi)
+                    self.assertIn('model_reasoning_effort="medium"', med)
+                    self.assertEqual(med[-1], "-")
+            self.srv.post("/api/settings", {"effort": "low"})
+            self.reset("claude")
+            self.srv.chat("claude", "Please create a practice set (practice-builder skill).")
+            argv = self.srv.calls()[-1]["argv"]
+            self.assertEqual(argv[argv.index("--effort") + 1], "low")
+        finally:
+            self.srv.post("/api/settings", {"effort": "auto"})
 
 
 class TestPractice(ServerTestCase):

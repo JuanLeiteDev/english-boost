@@ -777,10 +777,10 @@ LEARNER: [Expected: connection to author's themes, historical context, literary 
 - Learner just listens without writing
 
 **Comprehension check** (3 minutes):
-- Multiple choice (3 options per question):
-  1. What time does she wake up? a) 6 b) 7 c) 8
-  2. What does she do after breakfast? a) go to work b) get dressed c) shower
-  3. When does she go to bed? a) 8 b) 10 c) 9
+- Multiple choice (4 options per question):
+  1. What time does she wake up? a) 6 b) 7 c) 8 d) 9
+  2. What does she do after breakfast? a) go to work b) get dressed c) shower d) have a coffee
+  3. When does she go to bed? a) 8 b) 10 c) 9 d) 11
 - Learner answers aloud
 - You confirm: "Correct! She wakes up at 7"
 

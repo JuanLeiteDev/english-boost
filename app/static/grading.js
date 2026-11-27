@@ -71,8 +71,27 @@
       return spanMatch(A, P, vars);
     });
   }
+  // Multiple choice: the rendered HTML of an item that ends with "a) … b) … c) … d) …" (on one line or on
+  // their own lines) → { stem, opts: [{ letter, html }] }. null when the item has no option list.
+  function choices(html) {
+    const re = /(^|\s|<br>)\(?([a-f])\)\s+/g;
+    const marks = [];
+    let m;
+    while ((m = re.exec(html))) marks.push({ l: m[2], start: m.index + m[1].length, end: re.lastIndex });
+    const trim = (s) => s.replace(/(\s|<br>)+$/, "").trim();
+    for (let i = 0; i < marks.length; i++) {
+      if (marks[i].l !== "a") continue;
+      const run = [marks[i]];
+      for (let k = i + 1; k < marks.length && marks[k].l === String.fromCharCode(97 + run.length); k++) run.push(marks[k]);
+      if (run.length < 2) continue;
+      const opts = run.map((r, k) => ({ letter: r.l, html: trim(html.slice(r.end, k + 1 < run.length ? run[k + 1].start : html.length)) }));
+      if (opts.some((o) => !o.html)) continue;
+      return { stem: trim(html.slice(0, run[0].start)), opts };
+    }
+    return null;
+  }
   const clean = (s) => String(s).replace(/\*\*/g, "").replace(/\s+←.*$/, "");
-  const api = { norm, variants, isRight, clean };
+  const api = { norm, variants, isRight, clean, choices };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.Grading = api;
 })(typeof window !== "undefined" ? window : globalThis);

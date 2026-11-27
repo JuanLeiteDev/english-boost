@@ -6,17 +6,17 @@
 4. catch up
 5. show up / turn up
 6. looking forward to
-7. up
-8. on
-9. out
-10. down
-11. on
-12. make
-13. take
-14. have / throw
-15. do
-16. made
-17. take
+7. a) up
+8. b) on
+9. c) out
+10. d) down
+11. b) on
+12. c) make
+13. d) take
+14. a) have
+15. b) do
+16. c) made
+17. a) take
 18. Yesterday I **did** my homework with Pedro. / did
 19. We **hung out** at the park after class. / hung out / hung
 20. I am looking forward to **seeing** you on Saturday. / I'm looking forward to seeing you on Saturday. / seeing

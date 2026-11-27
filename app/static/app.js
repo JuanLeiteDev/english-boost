@@ -711,7 +711,7 @@
   }
 
   /* ---------------- grammar unit (interactive) ---------------- */
-  const { isRight, clean } = window.Grading;
+  const { isRight, clean, choices } = window.Grading;
   const isPractice = (id) => /^\d{4}-\d\d-\d\d-[a-z0-9-]+$/.test(id || "");
 
   async function openUnit(id) {
@@ -741,12 +741,34 @@
       if (node.tagName === "H2") inEx = /practi|exerc/i.test(node.textContent);
       if (!inEx) return;
       if (node.tagName === "OL") $$("li[data-n]", node).forEach((li) => {
+        const n = li.dataset.n;
+        const save = (v) => { const d = store.get(`ans:${id}`, {}); d[n] = v; store.set(`ans:${id}`, d); };
         const inp = document.createElement("input");
+        inp.className = "ex-input"; inp.dataset.n = n; inp.value = draft[n] || "";
+        const mc = choices(li.innerHTML);
+        if (mc) {  // multiple choice: one tick box per option; the hidden input holds the chosen option text
+          li.innerHTML = `<span class="q">${mc.stem}</span>`;
+          li.dataset.q = li.textContent.trim();
+          inp.type = "hidden";
+          const group = document.createElement("div");
+          group.className = "choices"; group.setAttribute("role", "radiogroup");
+          group.innerHTML = mc.opts.map((o) => `<button type="button" class="choice" role="radio" aria-checked="false" data-l="${o.letter}"><span class="tick" aria-hidden="true"></span><span class="ct">${o.html}</span></button>`).join("");
+          const btns = $$(".choice", group), text = (b) => $(".ct", b).textContent.trim();
+          btns.forEach((b) => {
+            if (inp.value && text(b) === inp.value) b.setAttribute("aria-checked", "true");
+            b.onclick = () => {
+              const on = b.getAttribute("aria-checked") !== "true";
+              btns.forEach((x) => x.setAttribute("aria-checked", String(on && x === b)));
+              inp.value = on ? text(b) : ""; save(inp.value);
+            };
+          });
+          li.append(group, inp);
+          return;
+        }
         li.dataset.q = li.textContent.trim();  // the item text, so a full-sentence answer can be graded too
-        inp.className = "ex-input"; inp.dataset.n = li.dataset.n; inp.value = draft[li.dataset.n] || "";
         inp.placeholder = "Your answer"; inp.autocomplete = "off"; inp.spellcheck = false;
-        inp.oninput = () => { const d = store.get(`ans:${id}`, {}); d[li.dataset.n] = inp.value; store.set(`ans:${id}`, d); };
-        inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); const all = $$(".ex-input", doc); const nx = all[all.indexOf(inp) + 1]; nx ? nx.focus() : $("#ex-check").click(); } };
+        inp.oninput = () => save(inp.value);
+        inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); const all = $$(".ex-input:not([type=hidden])", doc); const nx = all[all.indexOf(inp) + 1]; nx ? nx.focus() : $("#ex-check").click(); } };
         li.appendChild(inp);
       });
       if (node.tagName === "H3" && /your turn|produ/i.test(node.textContent)) {
@@ -779,12 +801,19 @@
       li.classList.remove("right", "wrong");
       if (!exp || /^(pessoal|personal)/i.test(exp)) return;
       total++;
-      const ok = li.dataset.override ? li.dataset.override === "1" : isRight(inp.value, exp, li.dataset.q);
+      // tick boxes with a lettered key ("b) I am"): the picked letter decides, so "I'm" can't pass for "I am"
+      const keyLetters = [...clean(exp).matchAll(/(?:^|\/)\s*\(?([a-f])\)\s/gi)].map((x) => x[1].toLowerCase());
+      const picked = $(".choice[aria-checked=true]", li);
+      const ok = li.dataset.override ? li.dataset.override === "1"
+        : $(".choice", li) && keyLetters.length ? !!picked && keyLetters.includes(picked.dataset.l)
+        : isRight(inp.value, exp, li.dataset.q);
       if (ok) right++;
       li.classList.add(ok ? "right" : "wrong");
+      $$(".choice", li).forEach((b) => b.classList.toggle("is-key", !ok && keyLetters.includes(b.dataset.l)));
       const mk = document.createElement("div");
       mk.className = "mark";
-      mk.innerHTML = `${ok ? MK_GOOD : MK_BAD}${ok ? "" : `<span class="exp">${inline(clean(exp))}</span>`}<button title="Change the mark">${ok ? "mark as wrong" : "it is right"}</button>`;
+      const shown = $(".choice", li) ? clean(exp).replace(/^\(?[a-f]\)\s*/i, "") : clean(exp);  // tick boxes show no letters
+      mk.innerHTML = `${ok ? MK_GOOD : MK_BAD}${ok ? "" : `<span class="exp">${inline(shown)}</span>`}<button title="Change the mark">${ok ? "mark as wrong" : "it is right"}</button>`;
       $("button", mk).onclick = () => { li.dataset.override = ok ? "0" : "1"; check(id); };
       li.appendChild(mk);
     });
@@ -1184,6 +1213,7 @@
     const d = $("#dlg-settings"), f = $("form", d), s = S.state;
     $("#set-codex").innerHTML = (s.codex_models.length ? s.codex_models : ["gpt-6-sol"]).map((m) => `<option ${m === s.settings.codex_model ? "selected" : ""}>${esc(m)}</option>`).join("");
     f.claude_model.value = s.settings.claude_model || "";
+    f.effort.value = s.settings.effort || "auto";
     f.claude_bin.value = s.settings.claude_bin || "";
     f.codex_bin.value = s.settings.codex_bin || "";
     $("#set-cbin").placeholder = s.paths.claude ? `automatic: ${s.paths.claude}` : "not found: enter the path";

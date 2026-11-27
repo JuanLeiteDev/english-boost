@@ -135,9 +135,24 @@ class TestPracticeChecker(unittest.TestCase):
         errors, _ = self.cp.check("2026-11-27-weak", 20, {"vocabulary", "listening"}, online=False)
         text = "\n".join(errors)
         for must in ("item 1: the answer 'hang'", "item 2: the answer 'sign'", "only 4 scored items", "listening script 1 has",
-                     "link not in resources/exercise-links.md"):
+                     "link not in resources/exercise-links.md", "item 3: options in brackets", "no explanation link"):
             self.assertIn(must, text)
-        self.assertNotIn("item 3:", text)  # options in brackets are fine
+
+    def test_choices_and_learn_section(self):
+        learn = ("## 1. Learn it\n**Read first:** [Make or do](https://www.perfect-english-grammar.com/make-or-do.html)\n"
+                 "**Partners:** make friends · do homework · have a party · take a photo · make noise\n\n")
+        md = (f"# Set\n\n{learn}## 2. Practice · Vocabulary\n### A · Choose\n1. I ___ friends. a) make b) do c) take\n"
+              "2. I ___ homework. a) make b) do c) take d) have\n3. Let's ___ a break. a) take b) make c) do d) go\n")
+        self.put("2026-11-27-mc", md, "1. a) make\n2. do\n3. a) take\n")
+        errors, _ = self.cp.check("2026-11-27-mc", None, {"vocabulary"}, online=False)
+        text = "\n".join(errors)
+        for must in ("item 1: 3 options", "item 2: the key of a multiple-choice item must start with the letter",
+                     "'Learn it' section has only", "a list of 5 points on one line"):
+            self.assertIn(must, text)
+        self.assertNotIn("item 3:", text)
+        self.assertNotIn("no explanation link", text)
+        self.assertFalse(self.cp.bracket_options("I ___ it. (= start to work / run)"))
+        self.assertTrue(self.cp.explanation_links())
 
     def test_exercise_links_are_direct(self):
         urls = self.cp.allowed_links()
