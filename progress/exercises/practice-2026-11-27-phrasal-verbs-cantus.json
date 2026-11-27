@@ -1,0 +1,229 @@
+{
+ "id": "2026-11-27-phrasal-verbs-cantus",
+ "date": "2026-11-27",
+ "pct": 86,
+ "score": 38,
+ "total": 44,
+ "items": [
+  {
+   "n": "1",
+   "answer": "Do you want to go out on Friday? There's a party at the student bar.",
+   "ok": true
+  },
+  {
+   "n": "2",
+   "answer": "My train arrives at 6. Can you pick me up at the station?",
+   "ok": true
+  },
+  {
+   "n": "3",
+   "answer": "We need a plan for Sara's birthday. Can you come up with someting fun?",
+   "ok": true
+  },
+  {
+   "n": "4",
+   "answer": "I don't know when the event start. I'll ask Jens and find out.",
+   "ok": true
+  },
+  {
+   "n": "5",
+   "answer": "We planned to stay for one drink, but we ended up staying until 2 a.m.",
+   "ok": true
+  },
+  {
+   "n": "6",
+   "answer": "I thought my new flatmate was shy, but he turn out to be really funny.",
+   "ok": false
+  },
+  {
+   "n": "7",
+   "answer": "The party finished at 1, and I got back home at 1:30.",
+   "ok": true
+  },
+  {
+   "n": "8",
+   "answer": "This board game is really hard. I can't figure out the rules.",
+   "ok": true
+  },
+  {
+   "n": "9",
+   "answer": "out",
+   "ok": true
+  },
+  {
+   "n": "10",
+   "answer": "with",
+   "ok": true
+  },
+  {
+   "n": "11",
+   "answer": "out",
+   "ok": true
+  },
+  {
+   "n": "12",
+   "answer": "back",
+   "ok": true
+  },
+  {
+   "n": "13",
+   "answer": "up",
+   "ok": true
+  },
+  {
+   "n": "14",
+   "answer": "out",
+   "ok": true
+  },
+  {
+   "n": "15",
+   "answer": "eating",
+   "ok": true
+  },
+  {
+   "n": "16",
+   "answer": "pick me up",
+   "ok": true
+  },
+  {
+   "n": "17",
+   "answer": "home",
+   "ok": true
+  },
+  {
+   "n": "18",
+   "answer": "to be",
+   "ok": true
+  },
+  {
+   "n": "19",
+   "answer": "Yesterday we went out for dinner with the Erasmus group.",
+   "ok": true
+  },
+  {
+   "n": "20",
+   "answer": "Can you pick me up after class?",
+   "ok": true
+  },
+  {
+   "n": "21",
+   "answer": "I didn't find out the answer.",
+   "ok": true
+  },
+  {
+   "n": "22",
+   "answer": "We ended up taking a taxi.",
+   "ok": true
+  },
+  {
+   "n": "23",
+   "answer": "She cames up with a great ideia for the party.",
+   "ok": false
+  },
+  {
+   "n": "24",
+   "answer": "I got back home very late.",
+   "ok": true
+  },
+  {
+   "n": "25",
+   "answer": "We ended up at the party until midnight.",
+   "ok": false
+  },
+  {
+   "n": "26",
+   "answer": "",
+   "ok": false
+  },
+  {
+   "n": "27",
+   "answer": "Marta come up with a great idea for the costume.",
+   "ok": false
+  },
+  {
+   "n": "28",
+   "answer": "I got back to my flat at 1 a.m.",
+   "ok": true
+  },
+  {
+   "n": "29",
+   "answer": "A codex is a songbook.",
+   "ok": true
+  },
+  {
+   "n": "30",
+   "answer": "The singing started at 9.",
+   "ok": true
+  },
+  {
+   "n": "31",
+   "answer": "The singing started later than Jens said",
+   "ok": true
+  },
+  {
+   "n": "32",
+   "answer": "The senior leads the cantus.",
+   "ok": true
+  },
+  {
+   "n": "33",
+   "answer": "She spoke when it wasn't allowed",
+   "ok": true
+  },
+  {
+   "n": "34",
+   "answer": "On a chair.",
+   "ok": true
+  },
+  {
+   "n": "35",
+   "answer": "water and sodas",
+   "ok": true
+  },
+  {
+   "n": "36",
+   "answer": "Because the most songs are in Dutch or Latin",
+   "ok": true
+  },
+  {
+   "n": "37",
+   "answer": "by car",
+   "ok": true
+  },
+  {
+   "n": "38",
+   "answer": "Lina got home at 1:30",
+   "ok": true
+  },
+  {
+   "n": "39",
+   "answer": "They enjoyed it and joined in",
+   "ok": true
+  },
+  {
+   "n": "40",
+   "answer": "Say yes to invitations: it helps you make friends",
+   "ok": true
+  },
+  {
+   "n": "41",
+   "answer": "Yes, she is getting ready for it",
+   "ok": true
+  },
+  {
+   "n": "42",
+   "answer": "classmate",
+   "ok": true
+  },
+  {
+   "n": "43",
+   "answer": "brake",
+   "ok": false
+  },
+  {
+   "n": "44",
+   "answer": "clapped",
+   "ok": true
+  }
+ ]
+}

@@ -1,0 +1,119 @@
+{
+ "id": "2026-11-27-past-simple-lost-phone",
+ "date": "2026-11-27",
+ "pct": 95,
+ "score": 21,
+ "total": 22,
+ "items": [
+  {
+   "n": "1",
+   "answer": "took",
+   "ok": true
+  },
+  {
+   "n": "2",
+   "answer": "arrived",
+   "ok": true
+  },
+  {
+   "n": "3",
+   "answer": "left",
+   "ok": true
+  },
+  {
+   "n": "4",
+   "answer": "wasn't",
+   "ok": true
+  },
+  {
+   "n": "5",
+   "answer": "Did",
+   "ok": true
+  },
+  {
+   "n": "6",
+   "answer": "did",
+   "ok": true
+  },
+  {
+   "n": "7",
+   "answer": "said",
+   "ok": true
+  },
+  {
+   "n": "8",
+   "answer": "turned out",
+   "ok": true
+  },
+  {
+   "n": "9",
+   "answer": "I didn't go to the lost property office.",
+   "ok": true
+  },
+  {
+   "n": "10",
+   "answer": "Did the woman give my phone to the train staff?",
+   "ok": true
+  },
+  {
+   "n": "11",
+   "answer": "We weren't very hungry after the trip.",
+   "ok": true
+  },
+  {
+   "n": "12",
+   "answer": "Pedro came up with a plan.",
+   "ok": true
+  },
+  {
+   "n": "13",
+   "answer": "I finded out the office's opening time.",
+   "ok": false
+  },
+  {
+   "n": "14",
+   "answer": "What time did they pick up the phone at 4 p.m?",
+   "ok": true
+  },
+  {
+   "n": "15",
+   "answer": "Was my phone in the office?",
+   "ok": true
+  },
+  {
+   "n": "16",
+   "answer": "No, he didn't.",
+   "ok": true
+  },
+  {
+   "n": "17",
+   "answer": "Yes, she did.",
+   "ok": true
+  },
+  {
+   "n": "18",
+   "answer": "Yes, she was.",
+   "ok": true
+  },
+  {
+   "n": "19",
+   "answer": "No, she didn't",
+   "ok": true
+  },
+  {
+   "n": "20",
+   "answer": "No, they didn't.",
+   "ok": true
+  },
+  {
+   "n": "21",
+   "answer": "Yes, it was.",
+   "ok": true
+  },
+  {
+   "n": "22",
+   "answer": "Yes, he did.",
+   "ok": true
+  }
+ ]
+}
