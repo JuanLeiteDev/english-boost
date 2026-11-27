@@ -1,0 +1,114 @@
+{
+ "id": "P1-02",
+ "date": "2026-11-27",
+ "pct": 100,
+ "score": 21,
+ "total": 21,
+ "items": [
+  {
+   "n": "1",
+   "answer": "Watches",
+   "ok": true
+  },
+  {
+   "n": "2",
+   "answer": "Flies",
+   "ok": true
+  },
+  {
+   "n": "3",
+   "answer": "Plays",
+   "ok": true
+  },
+  {
+   "n": "4",
+   "answer": "Does",
+   "ok": true
+  },
+  {
+   "n": "5",
+   "answer": "Finishes",
+   "ok": true
+  },
+  {
+   "n": "6",
+   "answer": "has",
+   "ok": true
+  },
+  {
+   "n": "7",
+   "answer": "carries",
+   "ok": true
+  },
+  {
+   "n": "8",
+   "answer": "goes",
+   "ok": true
+  },
+  {
+   "n": "9",
+   "answer": "My flatmate cooks every evening.",
+   "ok": true
+  },
+  {
+   "n": "10",
+   "answer": "Classes start at 8:45 on Mondays.",
+   "ok": true
+  },
+  {
+   "n": "11",
+   "answer": "Juan studies AI Engineering.",
+   "ok": true
+  },
+  {
+   "n": "12",
+   "answer": "The train to Bruges leaves every 30 minutes.",
+   "ok": true
+  },
+  {
+   "n": "13",
+   "answer": "She has two brothers.",
+   "ok": true
+  },
+  {
+   "n": "14",
+   "answer": "We go to the gym on Fridays.",
+   "ok": true
+  },
+  {
+   "n": "15",
+   "answer": "The professor teaches machine learning.",
+   "ok": true
+  },
+  {
+   "n": "16",
+   "answer": "This algorithm tries all possible combinations.",
+   "ok": true
+  },
+  {
+   "n": "17",
+   "answer": "My friend lives near the campus.",
+   "ok": true
+  },
+  {
+   "n": "18",
+   "answer": "Everyone in my class speaks English",
+   "ok": true
+  },
+  {
+   "n": "19",
+   "answer": "He watches Netflix every night.",
+   "ok": true
+  },
+  {
+   "n": "20",
+   "answer": "The library has a lot of computers.",
+   "ok": true
+  },
+  {
+   "n": "21",
+   "answer": "Belgium has three official languages.",
+   "ok": true
+  }
+ ]
+}

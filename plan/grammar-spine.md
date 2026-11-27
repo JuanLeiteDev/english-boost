@@ -14,7 +14,7 @@ A sequência segue a progressão do **British Council/EAQUALS Core Inventory** e
 | ID | Unidade | CEFR | Semana | Dia previsto | Estado | % |
 |---|---|---|---|---|---|---|
 | P1-01 | Verb *to be* (am/is/are) · subject pronouns · possessive adjectives | A1 | 1 | 2026-11-26 | ✅ | 100% |
-| P1-02 | Present simple: affirmative · 3rd person -s/-es · /s/ /z/ /ɪz/ | A1 | 1 | 2026-11-27 | ⬜ | |
+| P1-02 | Present simple: affirmative · 3rd person -s/-es · /s/ /z/ /ɪz/ | A1 | 1 | 2026-11-27 | ✅ | 100% |
 | P1-03 | Present simple: negatives & questions (do/does) · short answers | A1 | 1 | 2026-11-28 | ⬜ | |
 | P1-04 | Adverbs of frequency · time expressions · word order | A1 | 1 | 2026-11-29 | ⬜ | |
 | P1-05 | Wh- questions · subject vs object questions | A1–A2 | 1 | 2026-11-30 | ⬜ | |

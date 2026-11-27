@@ -6,6 +6,12 @@ To add a link: open it, check that the questions or the audio are on that page, 
 
 Checked on **2026-11-26** (HTTP 200 + exercise inputs or audio on the page).
 
+## Listening · VOA Learning English
+
+| Lesson | Direct link | What Juan does there |
+|---|---|---|
+| Lesson 2: Hello, I'm Anna! (checked 2026-11-27) | https://learningenglish.voanews.com/a/lets-learn-english-lesson-2-hello/3113733.html | Listen to the conversation, check the transcript, and shadow the speakers |
+
 ## Explanations · learn it here first (checked 2026-11-27)
 
 Pages with a **full explanation of one point** (rules, many examples, often a video or PDF). The "Learn it" section of a practice set or unit is built on one of these: link it, then explain the point in simple English **from that page**, not from memory. `check_practice.py` reads this section to find explanation links.
