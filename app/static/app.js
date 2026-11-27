@@ -1356,6 +1356,16 @@
   /* ---------------- wiring ---------------- */
   function autoGrow() { const i = $("#input"); i.style.height = "auto"; i.style.height = Math.min(i.scrollHeight, 180) + "px"; }
 
+  /* When the composer grows (typing a long message, chips, the recording bar) the message list gets
+     shorter from the bottom and the last message slid out of view. If the list was at the bottom
+     before the resize, keep it there. */
+  function keepChatBottom() {
+    const box = $("#msgs");
+    let atBottom = true;
+    box.addEventListener("scroll", () => { atBottom = nearBottom(box); }, { passive: true });
+    new ResizeObserver(() => { if (atBottom) box.scrollTop = box.scrollHeight; }).observe(box);
+  }
+
   async function init() {
     paintThemeBtn();
     initLayout();
@@ -1364,6 +1374,7 @@
     $("#btn-send").onclick = () => (S.running ? api("/api/chat/stop", { agent: S.agent }) : send());
     $("#btn-mic").onclick = toggleMic;
     $("#input").addEventListener("input", autoGrow);
+    keepChatBottom();
     $("#input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
     $("#btn-new").onclick = async () => { if (S.running) return; await api("/api/chat/reset", { agent: S.agent }); loadHistory(); };
     $("#btn-chat").onclick = () => { document.body.classList.add("chat-open"); $("#input").focus(); };
